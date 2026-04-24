@@ -67,8 +67,8 @@ export const FeedbackPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">💬 Feedbacks</h1>
-        <p className="text-slate-600 mt-1">Gerencie feedback dos ministros sobre os eventos</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">💬 Feedbacks</h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie feedback dos ministros sobre os eventos</p>
       </div>
 
       {alertMessage && (
@@ -76,14 +76,20 @@ export const FeedbackPage: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card><div className="text-center"><p className="text-sm text-slate-600 mb-2">Total</p>
-          <p className="text-3xl font-bold text-slate-900">{feedbacks.length}</p></div></Card>
-        <Card><div className="text-center"><p className="text-sm text-slate-600 mb-2">Satisfação Média</p>
-          <p className="text-3xl font-bold text-slate-900">⭐ {averageRating}</p></div></Card>
-        <Card><div className="text-center"><p className="text-sm text-slate-600 mb-2">Pendentes</p>
-          <p className="text-3xl font-bold text-slate-900">
+        <Card><div className="text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Total</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">{feedbacks.length}</p>
+        </div></Card>
+        <Card><div className="text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Satisfação Média</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">⭐ {averageRating}</p>
+        </div></Card>
+        <Card><div className="text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Pendentes</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">
             {feedbacks.filter((f) => f.status === StatusFeedback.PENDENTE).length}
-          </p></div></Card>
+          </p>
+        </div></Card>
       </div>
 
       <Card>
@@ -107,8 +113,8 @@ export const FeedbackPage: React.FC = () => {
                     <span className="text-2xl">⭐ {feedback.nota}</span>
                     <Badge variant={getStatusVariant(feedback.status)}>{feedback.status}</Badge>
                   </div>
-                  <p className="font-semibold text-slate-900">{feedback.comentario}</p>
-                  <p className="text-sm text-slate-600 mt-2">
+                  <p className="font-semibold text-slate-900 dark:text-white">{feedback.comentario}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
                     📅 {new Date(feedback.dataEnvio).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
@@ -119,16 +125,16 @@ export const FeedbackPage: React.FC = () => {
                 )}
               </div>
               {feedback.resposta && (
-                <div className="mt-4 pt-4 border-t border-slate-200 bg-slate-50 p-3 rounded">
-                  <p className="font-semibold text-sm text-slate-700 mb-1">Resposta:</p>
-                  <p className="text-sm text-slate-600">{feedback.resposta}</p>
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg">
+                  <p className="font-semibold text-sm text-slate-700 dark:text-slate-300 mb-1">Resposta:</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{feedback.resposta}</p>
                 </div>
               )}
             </Card>
           ))
         ) : (
           <div className="text-center py-12">
-            <p className="text-slate-600 text-lg">Nenhum feedback encontrado</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">Nenhum feedback encontrado</p>
           </div>
         )}
       </div>
@@ -146,16 +152,16 @@ export const FeedbackPage: React.FC = () => {
       >
         {selectedFeedback && (
           <div className="space-y-4">
-            <div className="p-3 bg-blue-50 rounded">
-              <p className="text-sm font-semibold text-slate-700 mb-1">Feedback Original:</p>
-              <p className="text-sm">{selectedFeedback.comentario}</p>
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Feedback Original:</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300">{selectedFeedback.comentario}</p>
             </div>
             <textarea
               value={reply}
               onChange={(e) => setReply(e.target.value)}
               placeholder="Digite sua resposta..."
               rows={4}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 transition-colors"
             />
           </div>
         )}

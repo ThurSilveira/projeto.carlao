@@ -43,6 +43,11 @@ public class EscalaController {
         return dto != null ? ResponseEntity.ok(dto) : ResponseEntity.notFound().build();
     }
 
+    @PostMapping("/gerar/{eventoId}")
+    public ResponseEntity<EscalaDTO> gerar(@PathVariable Long eventoId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.gerarEscala(eventoId));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.deletar(id);

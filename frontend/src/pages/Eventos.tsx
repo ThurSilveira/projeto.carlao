@@ -106,8 +106,8 @@ export const EventosPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">📅 Eventos</h1>
-          <p className="text-slate-600 mt-1">Gerencie eventos e missas da paróquia</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">📅 Eventos</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie eventos e missas da paróquia</p>
         </div>
         <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
           <CalendarPlus size={18} className="mr-2" />
@@ -142,25 +142,25 @@ export const EventosPage: React.FC = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-slate-900">{evento.nome}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{evento.nome}</h3>
                     {evento.cancelado && <Badge variant="danger">Cancelado</Badge>}
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-3">
                     <div>
-                      <p className="text-slate-600">📅 Data</p>
-                      <p className="font-medium">{new Date(evento.data).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-slate-600 dark:text-slate-400">📅 Data</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{new Date(evento.data).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <div>
-                      <p className="text-slate-600">🕐 Horário</p>
-                      <p className="font-medium">{evento.horario}</p>
+                      <p className="text-slate-600 dark:text-slate-400">🕐 Horário</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{evento.horario}</p>
                     </div>
                     <div>
-                      <p className="text-slate-600">📍 Local</p>
-                      <p className="font-medium">{evento.local}</p>
+                      <p className="text-slate-600 dark:text-slate-400">📍 Local</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{evento.local}</p>
                     </div>
                     <div>
-                      <p className="text-slate-600">👥 Máx. Ministros</p>
-                      <p className="font-medium">{evento.maxMinistros}</p>
+                      <p className="text-slate-600 dark:text-slate-400">👥 Máx. Ministros</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{evento.maxMinistros}</p>
                     </div>
                   </div>
                   <div className="mt-3">
@@ -171,12 +171,12 @@ export const EventosPage: React.FC = () => {
                 {!evento.cancelado && evento.id != null && (
                   <div className="flex gap-2 ml-4">
                     <button onClick={() => handleEdit(evento)}
-                      className="p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label="Editar">
-                      <Edit2 size={16} className="text-slate-600" />
+                      className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" aria-label="Editar">
+                      <Edit2 size={16} className="text-slate-600 dark:text-slate-400" />
                     </button>
                     <button onClick={() => handleCancel(evento.id!)}
-                      className="p-2 rounded-lg hover:bg-red-50 transition-colors" aria-label="Cancelar">
-                      <Trash2 size={16} className="text-red-600" />
+                      className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" aria-label="Cancelar">
+                      <Trash2 size={16} className="text-red-600 dark:text-red-400" />
                     </button>
                   </div>
                 )}
@@ -185,7 +185,7 @@ export const EventosPage: React.FC = () => {
           ))
         ) : (
           <div className="text-center py-12">
-            <p className="text-slate-600 text-lg">Nenhum evento encontrado</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">Nenhum evento encontrado</p>
           </div>
         )}
       </div>

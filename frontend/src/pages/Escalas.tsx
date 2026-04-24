@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { EscalaService, EventoService, MinistroService } from '@/services/api';
+import { EscalaService, EventoService } from '@/services/api';
 import { Card, Badge, Spinner, Button, Modal, Select, Input, Alert } from '@/components/ui';
-import { Escala, Evento, Ministro, StatusEscala } from '@/types';
+import { Escala, Evento, StatusEscala } from '@/types';
 import { Plus, CheckCircle, XCircle } from 'lucide-react';
 
 export const EscalasPage: React.FC = () => {
@@ -99,8 +99,8 @@ export const EscalasPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">📋 Escalas</h1>
-          <p className="text-slate-600 mt-1">Gerencie as escalas de ministros</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">📋 Escalas</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie as escalas de ministros</p>
         </div>
         <Button onClick={() => setIsModalOpen(true)}>
           <Plus size={18} className="mr-2" />
@@ -131,7 +131,7 @@ export const EscalasPage: React.FC = () => {
               <Card key={escala.id}>
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900">{evento?.nome ?? '—'}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{evento?.nome ?? '—'}</h3>
                     <Badge variant={getStatusColor(escala.status)} className="mt-2">{escala.status}</Badge>
                   </div>
                   {escala.status === StatusEscala.PROPOSTA && escala.id != null && (
@@ -148,26 +148,26 @@ export const EscalasPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <p className="text-slate-600">📅 Data</p>
-                    <p className="font-medium">{evento?.data ? new Date(evento.data).toLocaleDateString('pt-BR') : '—'}</p>
+                    <p className="text-slate-600 dark:text-slate-400">📅 Data</p>
+                    <p className="font-medium text-slate-900 dark:text-white">{evento?.data ? new Date(evento.data).toLocaleDateString('pt-BR') : '—'}</p>
                   </div>
                   <div>
-                    <p className="text-slate-600">🕐 Horário</p>
-                    <p className="font-medium">{evento?.horario ?? '—'}</p>
+                    <p className="text-slate-600 dark:text-slate-400">🕐 Horário</p>
+                    <p className="font-medium text-slate-900 dark:text-white">{evento?.horario ?? '—'}</p>
                   </div>
                   <div>
-                    <p className="text-slate-600">👥 Ministros</p>
-                    <p className="font-medium">{escala.escalaMinistros.length}/{evento?.maxMinistros ?? '?'}</p>
+                    <p className="text-slate-600 dark:text-slate-400">👥 Ministros</p>
+                    <p className="font-medium text-slate-900 dark:text-white">{escala.escalaMinistros.length}/{evento?.maxMinistros ?? '?'}</p>
                   </div>
                   <div>
-                    <p className="text-slate-600">📝 Atribuição</p>
-                    <p className="font-medium">{new Date(escala.dataAtribuicao).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-slate-600 dark:text-slate-400">📝 Atribuição</p>
+                    <p className="font-medium text-slate-900 dark:text-white">{new Date(escala.dataAtribuicao).toLocaleDateString('pt-BR')}</p>
                   </div>
                 </div>
 
                 {escala.observacao && (
-                  <div className="mt-4 pt-4 border-t border-slate-200">
-                    <p className="text-sm text-slate-600">{escala.observacao}</p>
+                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">{escala.observacao}</p>
                   </div>
                 )}
               </Card>
@@ -175,7 +175,7 @@ export const EscalasPage: React.FC = () => {
           })
         ) : (
           <div className="text-center py-12">
-            <p className="text-slate-600 text-lg">Nenhuma escala encontrada</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">Nenhuma escala encontrada</p>
           </div>
         )}
       </div>

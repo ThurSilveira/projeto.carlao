@@ -53,8 +53,8 @@ export const AuditoriaPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">📝 Auditoria</h1>
-        <p className="text-slate-600 mt-1">Histórico de todas as ações no sistema</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">📝 Auditoria</h1>
+        <p className="text-slate-600 dark:text-slate-400 mt-1">Histórico de todas as ações no sistema</p>
       </div>
 
       {alertMessage && (
@@ -80,17 +80,25 @@ export const AuditoriaPage: React.FC = () => {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card><div className="text-center"><p className="text-sm text-slate-600 mb-2">Total de Ações</p>
-          <p className="text-3xl font-bold text-slate-900">{logs.length}</p></div></Card>
-        <Card><div className="text-center"><p className="text-sm text-slate-600 mb-2">Criações</p>
-          <p className="text-3xl font-bold text-green-600">
-            {logs.filter((l) => l.acao === TipoAcao.CRIADO).length}</p></div></Card>
-        <Card><div className="text-center"><p className="text-sm text-slate-600 mb-2">Aprovações</p>
-          <p className="text-3xl font-bold text-blue-600">
-            {logs.filter((l) => l.acao === TipoAcao.APROVADO).length}</p></div></Card>
-        <Card><div className="text-center"><p className="text-sm text-slate-600 mb-2">Cancelamentos</p>
-          <p className="text-3xl font-bold text-red-600">
-            {logs.filter((l) => l.acao === TipoAcao.CANCELADO).length}</p></div></Card>
+        <Card><div className="text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Total de Ações</p>
+          <p className="text-3xl font-bold text-slate-900 dark:text-white">{logs.length}</p>
+        </div></Card>
+        <Card><div className="text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Criações</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+            {logs.filter((l) => l.acao === TipoAcao.CRIADO).length}</p>
+        </div></Card>
+        <Card><div className="text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Aprovações</p>
+          <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+            {logs.filter((l) => l.acao === TipoAcao.APROVADO).length}</p>
+        </div></Card>
+        <Card><div className="text-center">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Cancelamentos</p>
+          <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+            {logs.filter((l) => l.acao === TipoAcao.CANCELADO).length}</p>
+        </div></Card>
       </div>
 
       <Card title="Histórico Detalhado">
@@ -98,30 +106,30 @@ export const AuditoriaPage: React.FC = () => {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {filteredLogs.map((log, index) => (
               <div key={log.id ?? index}
-                className="flex items-start gap-4 p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                className="flex items-start gap-4 p-3 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <Badge variant={getAcaoVariant(log.acao)} className="font-mono">{log.acao}</Badge>
-                    <span className="text-sm font-medium text-slate-900">{log.entidade}</span>
+                    <span className="text-sm font-medium text-slate-900 dark:text-white">{log.entidade}</span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="text-slate-600">Status Anterior</p>
-                      <p className="font-mono text-slate-900">{log.statusAnterior ?? '—'}</p>
+                      <p className="text-slate-600 dark:text-slate-400">Status Anterior</p>
+                      <p className="font-mono text-slate-900 dark:text-white">{log.statusAnterior ?? '—'}</p>
                     </div>
                     <div>
-                      <p className="text-slate-600">Status Novo</p>
-                      <p className="font-mono text-slate-900">{log.statusNovo ?? '—'}</p>
+                      <p className="text-slate-600 dark:text-slate-400">Status Novo</p>
+                      <p className="font-mono text-slate-900 dark:text-white">{log.statusNovo ?? '—'}</p>
                     </div>
                     <div>
-                      <p className="text-slate-600">Data/Hora</p>
-                      <p className="font-medium text-slate-900">
+                      <p className="text-slate-600 dark:text-slate-400">Data/Hora</p>
+                      <p className="font-medium text-slate-900 dark:text-white">
                         {format(new Date(log.dataHora), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
                       </p>
                     </div>
                   </div>
                   {log.realizadoPorId && (
-                    <p className="mt-2 text-sm text-slate-600">👤 {log.realizadoPorId}</p>
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">👤 {log.realizadoPorId}</p>
                   )}
                 </div>
               </div>
@@ -129,7 +137,7 @@ export const AuditoriaPage: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-slate-600 text-lg">Nenhum registro encontrado</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">Nenhum registro encontrado</p>
           </div>
         )}
       </Card>

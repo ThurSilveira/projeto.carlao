@@ -126,8 +126,8 @@ export const MinistrosPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">👥 Ministros</h1>
-          <p className="text-slate-600 mt-1">Gerencie e acompanhe ministros da paróquia</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">👥 Ministros</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie e acompanhe ministros da paróquia</p>
         </div>
         <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
           <Plus size={18} className="mr-2" />
@@ -170,23 +170,23 @@ export const MinistrosPage: React.FC = () => {
               <div className="absolute top-4 right-4 flex gap-2">
                 <button
                   onClick={() => handleEdit(ministro)}
-                  className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                  className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                   aria-label={`Editar ${ministro.nome}`}
                 >
-                  <Edit2 size={16} className="text-slate-600" />
+                  <Edit2 size={16} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <button
                   onClick={() => ministro.id != null && handleDelete(ministro.id)}
-                  className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                  className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   aria-label={`Deletar ${ministro.nome}`}
                 >
-                  <Trash2 size={16} className="text-red-600" />
+                  <Trash2 size={16} className="text-red-600 dark:text-red-400" />
                 </button>
               </div>
 
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-semibold text-slate-900">{ministro.nome}</h3>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{ministro.nome}</h3>
                   <Badge variant={ministro.ativo ? 'success' : 'danger'}>
                     {ministro.ativo ? 'Ativo' : 'Inativo'}
                   </Badge>
@@ -195,17 +195,17 @@ export const MinistrosPage: React.FC = () => {
               </div>
 
               <div className="space-y-1 text-sm">
-                <p className="text-slate-600">📧 {ministro.email}</p>
-                <p className="text-slate-600">📱 {ministro.telefone}</p>
+                <p className="text-slate-600 dark:text-slate-400">📧 {ministro.email}</p>
+                <p className="text-slate-600 dark:text-slate-400">📱 {ministro.telefone}</p>
                 {ministro.dataNascimento && (
-                  <p className="text-slate-600">🎂 {new Date(ministro.dataNascimento).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-slate-600 dark:text-slate-400">🎂 {new Date(ministro.dataNascimento).toLocaleDateString('pt-BR')}</p>
                 )}
-                {ministro.observacoes && <p className="text-slate-600">📝 {ministro.observacoes}</p>}
+                {ministro.observacoes && <p className="text-slate-600 dark:text-slate-400">📝 {ministro.observacoes}</p>}
               </div>
 
               {ministro.aptidoes && ministro.aptidoes.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-slate-200">
-                  <p className="text-xs text-slate-600 font-medium mb-2">Aptidões:</p>
+                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-2">Aptidões:</p>
                   <div className="flex flex-wrap gap-1">
                     {ministro.aptidoes.map((apt) => (
                       <Badge key={apt} variant="primary">{apt.replace(/_/g, ' ')}</Badge>
@@ -217,7 +217,7 @@ export const MinistrosPage: React.FC = () => {
           ))
         ) : (
           <div className="col-span-full text-center py-12">
-            <p className="text-slate-600 text-lg">Nenhum ministro encontrado</p>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">Nenhum ministro encontrado</p>
           </div>
         )}
       </div>
@@ -256,7 +256,7 @@ export const MinistrosPage: React.FC = () => {
               { label: 'Realiza visitas ao infermo', key: 'visitasAoInfermo' as const },
               { label: 'Curso completo', key: 'statusCurso' as const },
             ].map(({ label, key }) => (
-              <label key={key} className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <label key={key} className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                 <input type="checkbox" checked={!!formData[key]}
                   onChange={(e) => setFormData({ ...formData, [key]: e.target.checked })} />
                 {label}

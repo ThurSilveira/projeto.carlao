@@ -239,12 +239,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, children, onClose, 
         role="presentation"
       />
       <div
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl z-50 p-6 max-w-md w-11/12 max-h-96 overflow-y-auto"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-800 rounded-lg shadow-xl z-50 p-6 max-w-md w-11/12 max-h-[80vh] overflow-y-auto transition-colors"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <h2 id="modal-title" className="text-xl font-bold mb-4">
+        <h2 id="modal-title" className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
           {title}
         </h2>
         <div className="mb-6">{children}</div>
