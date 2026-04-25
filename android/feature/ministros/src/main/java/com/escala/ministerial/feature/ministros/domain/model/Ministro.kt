@@ -14,6 +14,9 @@ data class Ministro(
     val statusCurso: Boolean,
     val escalasMes: Int,
     val funcao: FuncaoMinistro,
+    val funcaoEspecificada: String? = null,
+    val escalasAgendadas: List<LocalDate> = emptyList(),
+    val indisponibilidades: List<Indisponibilidade> = emptyList(),
 )
 
 enum class FuncaoMinistro(val label: String) {

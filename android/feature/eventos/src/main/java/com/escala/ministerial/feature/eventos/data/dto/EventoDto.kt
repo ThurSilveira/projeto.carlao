@@ -9,6 +9,7 @@ data class EventoDto(
     val data: String = "",
     val horario: String = "",
     val tipoEvento: String = "MISSA_PAROQUIAL",
+    val tipoEspecificado: String? = null,
     val maxMinistros: Int = 6,
     val local: String? = null,
     val cancelado: Boolean = false,

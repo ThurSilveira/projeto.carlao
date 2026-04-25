@@ -30,6 +30,8 @@ public class Ministro {
     @Column(nullable = false)
     private FuncaoMinistro funcao = FuncaoMinistro.LEITURA;
 
+    private String funcaoEspecificada;
+
     public Ministro() {}
 
     public Long getId() { return id; }
@@ -64,4 +66,7 @@ public class Ministro {
 
     public FuncaoMinistro getFuncao() { return funcao; }
     public void setFuncao(FuncaoMinistro funcao) { this.funcao = funcao; }
+
+    public String getFuncaoEspecificada() { return funcaoEspecificada; }
+    public void setFuncaoEspecificada(String funcaoEspecificada) { this.funcaoEspecificada = funcaoEspecificada; }
 }

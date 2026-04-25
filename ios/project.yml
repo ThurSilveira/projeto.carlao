@@ -1,0 +1,48 @@
+name: EscalaMinisterial
+options:
+  bundleIdPrefix: com.escala.ministerial
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    ENABLE_PREVIEWS: YES
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  EscalaMinisterial:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: EscalaMinisterial
+        excludes:
+          - "**/*.md"
+    info:
+      path: EscalaMinisterial/Info.plist
+      properties:
+        CFBundleName: Escala Ministerial
+        CFBundleDisplayName: Escala Ministerial
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.escala.ministerial.app
+        INFOPLIST_FILE: EscalaMinisterial/Info.plist
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic

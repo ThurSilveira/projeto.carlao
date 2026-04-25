@@ -8,6 +8,7 @@ public class EventoDTO {
     private LocalDate data;
     private String horario;
     private String tipoEvento;
+    private String tipoEspecificado;
     private Integer maxMinistros;
     private String local;
     private boolean cancelado;
@@ -28,6 +29,9 @@ public class EventoDTO {
 
     public String getTipoEvento() { return tipoEvento; }
     public void setTipoEvento(String tipoEvento) { this.tipoEvento = tipoEvento; }
+
+    public String getTipoEspecificado() { return tipoEspecificado; }
+    public void setTipoEspecificado(String tipoEspecificado) { this.tipoEspecificado = tipoEspecificado; }
 
     public Integer getMaxMinistros() { return maxMinistros; }
     public void setMaxMinistros(Integer maxMinistros) { this.maxMinistros = maxMinistros; }

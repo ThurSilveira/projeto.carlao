@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.escala.ministerial.core.ui.components.ErrorScreen
 import com.escala.ministerial.core.ui.components.LoadingScreen
+import com.escala.ministerial.core.ui.theme.*
 import com.escala.ministerial.feature.dashboard.domain.model.DashboardStats
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,12 +50,26 @@ fun DashboardScreen(viewModel: DashboardViewModel = hiltViewModel()) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Dashboard") },
+                title = {
+                    Text(
+                        "Dashboard",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
                 actions = {
                     IconButton(onClick = viewModel::loadDashboard) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Atualizar")
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = "Atualizar",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
-                }
+                },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                )
             )
         }
     ) { padding ->
@@ -78,21 +94,48 @@ private fun DashboardContent(stats: DashboardStats, modifier: Modifier = Modifie
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
-        Text("Resumo Geral", style = MaterialTheme.typography.titleMedium)
+        // Welcome Card
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            shape = MaterialTheme.shapes.large,
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Bem-vindo de volta! 👋",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    "Aqui está um resumo dos principais indicadores do sistema",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+        }
 
+        // Main Stats Section
+        Text(
+            "Resumo Geral",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        // First Row - Ministros and Eventos
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             StatCard(
                 label = "Ministros",
                 value = "${stats.ministrosAtivos}",
                 subtitle = "de ${stats.totalMinistros} ativos",
                 icon = Icons.Default.Group,
-                color = Color(0xFF1565C0),
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
             )
             StatCard(
@@ -100,21 +143,22 @@ private fun DashboardContent(stats: DashboardStats, modifier: Modifier = Modifie
                 value = "${stats.eventosAtivos}",
                 subtitle = "de ${stats.totalEventos} ativos",
                 icon = Icons.Default.CalendarMonth,
-                color = Color(0xFF4CAF50),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.weight(1f),
             )
         }
 
+        // Second Row - Escalas and Feedbacks
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             StatCard(
                 label = "Escalas",
                 value = "${stats.escalasAprovadas}",
                 subtitle = "de ${stats.totalEscalas} aprovadas",
                 icon = Icons.Default.Schedule,
-                color = Color(0xFF9C27B0),
+                color = MaterialTheme.colorScheme.tertiary,
                 modifier = Modifier.weight(1f),
             )
             StatCard(
@@ -122,24 +166,28 @@ private fun DashboardContent(stats: DashboardStats, modifier: Modifier = Modifie
                 value = "${stats.feedbacksPendentes}",
                 subtitle = "pendentes",
                 icon = Icons.Default.Feedback,
-                color = Color(0xFFF59E0B),
+                color = WarningAmber,
                 modifier = Modifier.weight(1f),
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Indicadores", style = MaterialTheme.typography.titleMedium)
+        // Indicators Section
+        Text(
+            "Indicadores de Performance",
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             StatCard(
                 label = "Nota Média",
                 value = if (stats.mediaNota > 0) "%.1f".format(stats.mediaNota) else "—",
                 subtitle = "feedback dos ministros",
                 icon = Icons.Default.Star,
-                color = Color(0xFFFF9800),
+                color = TertiaryAmber,
                 modifier = Modifier.weight(1f),
             )
             StatCard(
@@ -147,7 +195,7 @@ private fun DashboardContent(stats: DashboardStats, modifier: Modifier = Modifie
                 value = "${stats.totalEscalas + stats.totalMinistros}",
                 subtitle = "registros totais",
                 icon = Icons.Default.Assessment,
-                color = Color(0xFF607D8B),
+                color = NeutralGrey,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -165,21 +213,49 @@ private fun StatCard(
 ) {
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.08f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = color.copy(alpha = 0.2f)
+        ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Icon(icon, contentDescription = null, tint = color)
-                Text(label, style = MaterialTheme.typography.labelSmall)
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            Spacer(Modifier.height(8.dp))
-            Text(value, style = MaterialTheme.typography.titleLarge, color = color)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall)
+
+            Text(
+                value,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+            )
+
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

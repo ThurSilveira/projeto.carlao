@@ -165,7 +165,12 @@ public class EscalaService {
             EscalaMinistroDTO emDto = new EscalaMinistroDTO();
             emDto.setId(em.getId());
             emDto.setEscalaId(e.getId());
-            emDto.setMinistroId(em.getMinistro() != null ? em.getMinistro().getId() : null);
+            if (em.getMinistro() != null) {
+                emDto.setMinistroId(em.getMinistro().getId());
+                emDto.setMinistroNome(em.getMinistro().getNome());
+                emDto.setMinistroFuncao(em.getMinistro().getFuncao() != null
+                        ? em.getMinistro().getFuncao().name() : null);
+            }
             emDto.setConfirmacaoMinistro(em.isConfirmacaoMinistro());
             emDto.setDataConfirmacao(em.getDataConfirmacao());
             emDto.setSubstituido(em.isSubstituido());

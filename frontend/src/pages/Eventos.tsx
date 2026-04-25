@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { EventoService } from '@/services/api';
+import api from '@/services/api';
 import { Card, Button, Input, Badge, Spinner, Modal, Select, Alert } from '@/components/ui';
 import { Evento, TipoEvento } from '@/types';
-import { CalendarPlus, Trash2, Edit2 } from 'lucide-react';
+import { CalendarPlus, Trash2, Edit2, FlaskConical } from 'lucide-react';
 
 export const EventosPage: React.FC = () => {
   const [eventos, setEventos] = useState<Evento[]>([]);
@@ -86,9 +87,19 @@ export const EventosPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleSeedTestData = async () => {
+    try {
+      const res = await api.post('/seed');
+      showAlert(res.data.mensagem || '+10 ministros e +10 eventos adicionados!', 'success');
+      await loadEventos();
+    } catch {
+      showAlert('Erro ao carregar dados de teste (backend com profile local?)', 'error');
+    }
+  };
+
   const resetForm = () => {
     setEditingEvento(null);
-    setFormData({ nome: '', data: '', horario: '', tipoEvento: TipoEvento.MISSA_PAROQUIAL, maxMinistros: 6, local: '', cancelado: false });
+    setFormData({ nome: '', data: '', horario: '', tipoEvento: TipoEvento.MISSA_PAROQUIAL, tipoEspecificado: '', maxMinistros: 6, local: '', cancelado: false });
   };
 
   const filteredEventos = eventos.filter((e) => {
@@ -109,10 +120,16 @@ export const EventosPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">📅 Eventos</h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie eventos e missas da paróquia</p>
         </div>
-        <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
-          <CalendarPlus size={18} className="mr-2" />
-          Novo Evento
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={handleSeedTestData}>
+            <FlaskConical size={18} className="mr-2" />
+            Dados Teste
+          </Button>
+          <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
+            <CalendarPlus size={18} className="mr-2" />
+            Novo Evento
+          </Button>
+        </div>
       </div>
 
       {alertMessage && (
@@ -215,6 +232,14 @@ export const EventosPage: React.FC = () => {
             options={Object.values(TipoEvento).map((t) => ({ value: t, label: t.replace(/_/g, ' ') }))}
             onChange={(e) => setFormData({ ...formData, tipoEvento: e.target.value as TipoEvento })}
           />
+          {formData.tipoEvento === TipoEvento.OUTRO && (
+            <Input
+              label="Especifique o tipo"
+              value={formData.tipoEspecificado as string ?? ''}
+              placeholder="Ex: Celebração de aniversário..."
+              onChange={(e) => setFormData({ ...formData, tipoEspecificado: e.target.value })}
+            />
+          )}
           <Input label="Local" value={formData.local as string}
             onChange={(e) => setFormData({ ...formData, local: e.target.value })}
             placeholder="Ex: Igreja Matriz" />

@@ -16,10 +16,11 @@ public class MinistroDTO {
     private boolean statusCurso;
     private Integer escalasMes;
     private String funcao;
+    private String funcaoEspecificada;
     private List<String> aptidoes = new ArrayList<>();
-    private List<Object> indisponibilidades = new ArrayList<>();
+    private List<IndisponibilidadeDTO> indisponibilidades = new ArrayList<>();
+    private List<LocalDate> escalasAgendadas = new ArrayList<>();
     private List<Object> disponibilidadesRec = new ArrayList<>();
-    private List<Object> escalasMinistro = new ArrayList<>();
 
     public MinistroDTO() {}
 
@@ -56,15 +57,18 @@ public class MinistroDTO {
     public String getFuncao() { return funcao; }
     public void setFuncao(String funcao) { this.funcao = funcao; }
 
+    public String getFuncaoEspecificada() { return funcaoEspecificada; }
+    public void setFuncaoEspecificada(String funcaoEspecificada) { this.funcaoEspecificada = funcaoEspecificada; }
+
     public List<String> getAptidoes() { return aptidoes; }
     public void setAptidoes(List<String> aptidoes) { this.aptidoes = aptidoes; }
 
-    public List<Object> getIndisponibilidades() { return indisponibilidades; }
-    public void setIndisponibilidades(List<Object> indisponibilidades) { this.indisponibilidades = indisponibilidades; }
+    public List<IndisponibilidadeDTO> getIndisponibilidades() { return indisponibilidades; }
+    public void setIndisponibilidades(List<IndisponibilidadeDTO> indisponibilidades) { this.indisponibilidades = indisponibilidades; }
+
+    public List<LocalDate> getEscalasAgendadas() { return escalasAgendadas; }
+    public void setEscalasAgendadas(List<LocalDate> escalasAgendadas) { this.escalasAgendadas = escalasAgendadas; }
 
     public List<Object> getDisponibilidadesRec() { return disponibilidadesRec; }
     public void setDisponibilidadesRec(List<Object> disponibilidadesRec) { this.disponibilidadesRec = disponibilidadesRec; }
-
-    public List<Object> getEscalasMinistro() { return escalasMinistro; }
-    public void setEscalasMinistro(List<Object> escalasMinistro) { this.escalasMinistro = escalasMinistro; }
 }

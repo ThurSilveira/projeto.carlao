@@ -2,8 +2,11 @@ package com.escala.ministerial.feature.ministros.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.escala.ministerial.core.data.seed.LocalSeedDataSeeder
 import com.escala.ministerial.core.network.model.ApiResult
+import com.escala.ministerial.feature.ministros.domain.model.Indisponibilidade
 import com.escala.ministerial.feature.ministros.domain.model.Ministro
+import com.escala.ministerial.feature.ministros.domain.repository.MinistroRepository
 import com.escala.ministerial.feature.ministros.domain.usecase.DeleteMinistroUseCase
 import com.escala.ministerial.feature.ministros.domain.usecase.GetMinistrosUseCase
 import com.escala.ministerial.feature.ministros.domain.usecase.RefreshMinistrosUseCase
@@ -23,6 +26,8 @@ class MinistrosViewModel @Inject constructor(
     private val refreshMinistros: RefreshMinistrosUseCase,
     private val saveMinistro: SaveMinistroUseCase,
     private val deleteMinistro: DeleteMinistroUseCase,
+    private val repository: MinistroRepository,
+    private val seeder: LocalSeedDataSeeder,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MinistrosUiState>(MinistrosUiState.Loading)
@@ -30,6 +35,9 @@ class MinistrosViewModel @Inject constructor(
 
     private val _events = Channel<MinistroEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
+
+    private val _indisponibilidadeState = MutableStateFlow<IndisponibilidadeUiState>(IndisponibilidadeUiState.Idle)
+    val indisponibilidadeState: StateFlow<IndisponibilidadeUiState> = _indisponibilidadeState
 
     init {
         observeMinistros()
@@ -91,10 +99,90 @@ class MinistrosViewModel @Inject constructor(
         }
     }
 
+    fun seedTestData() {
+        viewModelScope.launch {
+            seeder.addRandom()
+            _events.send(MinistroEvent.ShowMessage("+10 ministros aleatórios adicionados!"))
+        }
+    }
+
     fun delete(id: Long) {
         viewModelScope.launch {
             when (val result = deleteMinistro(id)) {
                 is ApiResult.Success -> _events.send(MinistroEvent.Deleted)
+                is ApiResult.Error -> _events.send(MinistroEvent.ShowMessage(result.message))
+                else -> Unit
+            }
+        }
+    }
+
+    // ── Indisponibilidades ────────────────────────────────────────────────────
+
+    fun openIndisponibilidades(ministro: Ministro) {
+        _indisponibilidadeState.value = IndisponibilidadeUiState.Active(
+            ministroId = ministro.id,
+            ministroNome = ministro.nome,
+            items = ministro.indisponibilidades,
+            loading = true,
+        )
+        viewModelScope.launch {
+            when (val result = repository.getIndisponibilidades(ministro.id)) {
+                is ApiResult.Success -> {
+                    val current = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return@launch
+                    _indisponibilidadeState.value = current.copy(items = result.data, loading = false)
+                }
+                is ApiResult.Error -> {
+                    val current = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return@launch
+                    _indisponibilidadeState.value = current.copy(loading = false)
+                    _events.send(MinistroEvent.ShowMessage(result.message))
+                }
+                else -> Unit
+            }
+        }
+    }
+
+    fun closeIndisponibilidades() {
+        _indisponibilidadeState.value = IndisponibilidadeUiState.Idle
+    }
+
+    fun createIndisponibilidade(indisp: Indisponibilidade) {
+        val current = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return
+        viewModelScope.launch {
+            when (val result = repository.createIndisponibilidade(current.ministroId, indisp)) {
+                is ApiResult.Success -> {
+                    val state = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return@launch
+                    _indisponibilidadeState.value = state.copy(items = state.items + result.data)
+                }
+                is ApiResult.Error -> _events.send(MinistroEvent.ShowMessage(result.message))
+                else -> Unit
+            }
+        }
+    }
+
+    fun updateIndisponibilidade(indisp: Indisponibilidade) {
+        val current = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return
+        viewModelScope.launch {
+            when (val result = repository.updateIndisponibilidade(current.ministroId, indisp)) {
+                is ApiResult.Success -> {
+                    val state = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return@launch
+                    _indisponibilidadeState.value = state.copy(
+                        items = state.items.map { if (it.id == result.data.id) result.data else it },
+                    )
+                }
+                is ApiResult.Error -> _events.send(MinistroEvent.ShowMessage(result.message))
+                else -> Unit
+            }
+        }
+    }
+
+    fun deleteIndisponibilidade(id: Long) {
+        val current = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return
+        viewModelScope.launch {
+            when (val result = repository.deleteIndisponibilidade(current.ministroId, id)) {
+                is ApiResult.Success -> {
+                    val state = _indisponibilidadeState.value as? IndisponibilidadeUiState.Active ?: return@launch
+                    _indisponibilidadeState.value = state.copy(items = state.items.filter { it.id != id })
+                }
                 is ApiResult.Error -> _events.send(MinistroEvent.ShowMessage(result.message))
                 else -> Unit
             }

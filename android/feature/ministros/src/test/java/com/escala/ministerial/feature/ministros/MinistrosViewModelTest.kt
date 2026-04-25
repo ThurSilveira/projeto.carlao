@@ -1,9 +1,11 @@
 package com.escala.ministerial.feature.ministros
 
 import app.cash.turbine.test
+import com.escala.ministerial.core.data.seed.LocalSeedDataSeeder
 import com.escala.ministerial.core.network.model.ApiResult
 import com.escala.ministerial.feature.ministros.domain.model.FuncaoMinistro
 import com.escala.ministerial.feature.ministros.domain.model.Ministro
+import com.escala.ministerial.feature.ministros.domain.repository.MinistroRepository
 import com.escala.ministerial.feature.ministros.domain.usecase.DeleteMinistroUseCase
 import com.escala.ministerial.feature.ministros.domain.usecase.GetMinistrosUseCase
 import com.escala.ministerial.feature.ministros.domain.usecase.RefreshMinistrosUseCase
@@ -35,6 +37,8 @@ class MinistrosViewModelTest {
     private lateinit var refreshMinistros: RefreshMinistrosUseCase
     private lateinit var saveMinistro: SaveMinistroUseCase
     private lateinit var deleteMinistro: DeleteMinistroUseCase
+    private lateinit var repository: MinistroRepository
+    private lateinit var seeder: LocalSeedDataSeeder
     private lateinit var viewModel: MinistrosViewModel
 
     private val ministros = listOf(
@@ -45,10 +49,12 @@ class MinistrosViewModelTest {
     @BeforeEach
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        getMinistros = mockk()
-        refreshMinistros = mockk()
-        saveMinistro = mockk()
-        deleteMinistro = mockk()
+        getMinistros = mockk<GetMinistrosUseCase>()
+        refreshMinistros = mockk<RefreshMinistrosUseCase>()
+        saveMinistro = mockk<SaveMinistroUseCase>()
+        deleteMinistro = mockk<DeleteMinistroUseCase>()
+        repository = mockk<MinistroRepository>()
+        seeder = mockk<LocalSeedDataSeeder>()
 
         every { getMinistros() } returns flowOf(ministros)
         coEvery { refreshMinistros() } returns ApiResult.Success(Unit)
@@ -61,7 +67,7 @@ class MinistrosViewModelTest {
 
     @Test
     fun `initial state is Loading then Success`() = runTest {
-        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro)
+        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro, repository, seeder)
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value is MinistrosUiState.Success)
@@ -71,7 +77,7 @@ class MinistrosViewModelTest {
 
     @Test
     fun `search filters by nome`() = runTest {
-        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro)
+        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro, repository, seeder)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.search("Ana")
@@ -84,7 +90,7 @@ class MinistrosViewModelTest {
 
     @Test
     fun `toggleSoAtivos filters inactive ministros`() = runTest {
-        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro)
+        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro, repository, seeder)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.toggleSoAtivos(true)
@@ -98,7 +104,7 @@ class MinistrosViewModelTest {
     fun `save emits Saved event on success`() = runTest {
         val ministro = ministros[0]
         coEvery { saveMinistro(ministro) } returns ApiResult.Success(ministro)
-        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro)
+        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro, repository, seeder)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.events.test {
@@ -112,7 +118,7 @@ class MinistrosViewModelTest {
     @Test
     fun `delete emits ShowMessage on error`() = runTest {
         coEvery { deleteMinistro(1L) } returns ApiResult.Error("Não foi possível excluir")
-        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro)
+        viewModel = MinistrosViewModel(getMinistros, refreshMinistros, saveMinistro, deleteMinistro, repository, seeder)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.events.test {

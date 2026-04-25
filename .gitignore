@@ -1,23 +1,44 @@
+# Environment
 .env
 .env.local
 .env.*
 !.env.example
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
+# IDE & Editors
 .idea/
 .vscode/
-*.swp
-*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 *~
 *.sublime-workspace
 *.sublime-project
-.DS_Store
+.~lock.*
 
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
 logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
+# Java / Maven
 target/
 .classpath
 .project
@@ -26,12 +47,6 @@ target/
 *.jar
 *.war
 *.ear
-*.zip
-*.rar
-*.7z
-*.swp
-*.swo
-
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
@@ -41,37 +56,52 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
-
 application-*.properties
-*.db
-*.sqlite
 
+# Gradle / Android
 .gradle/
 build/
 gradle-app.setting
 gradlew
 gradlew.bat
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+*.iml
+*.ipr
+*.iws
+local.properties
+/captures
+.externalNativeBuild
+.cxx
+*.jks
+*.keystore
+*.p12
 
+# iOS / Xcode
+/.build
+/Packages
+xcuserdata/
+DerivedData/
+*.xcworkspace
+*.xcodeproj
+
+# Node.js / Frontend
 node_modules/
-npm-debug.log
-yarn-error.log
-.nuxt/
+.pnp
+.pnp.js
+/coverage
 dist/
-build/
-.cache/
-.next/
-
-.vite/
-dist/
-
 out/
+.nuxt/
+.next/
+.vite/
 .parcel-cache
-.cache
+.cache/
+*.bundle
+*.bundle.js
+*.bundle.css
 
-.env.*.local
-.DS_Store
-Thumbs.db
-
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -86,13 +116,13 @@ pip-delete-this-directory.txt
 .tox/
 .coverage
 .coverage.*
-.cache
 nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
 
+# Database
 *.db
 *.sqlite
 *.sqlite3
@@ -100,37 +130,27 @@ coverage.xml
 *.mysql
 dump.sql
 
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Archives
+*.zip
+*.rar
+*.7z
 
-*.bak
-*.tmp
-*.temp
-*.swp
-*.swo
-*~
-.~lock.*
-
-dist/
-build/
-*.bundle
-*.bundle.js
-*.bundle.css
+# Terraform
 .terraform/
 terraform.tfstate*
 
+# Secrets & Credentials
 .credentials
 credentials.json
 secret.key
 private.key
 *.pem
 *.key
+
+# Project-specific
 DEPLOY.md
 generate_secret.sh
 database-schema-postgresql.sql
 database-seed-postegrsql.sql
+.claude/*
+RODAR_LOCAL.txt

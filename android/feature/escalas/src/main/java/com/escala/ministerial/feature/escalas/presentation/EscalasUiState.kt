@@ -19,4 +19,5 @@ sealed interface EscalaEvent {
     data object Approved : EscalaEvent
     data object Cancelled : EscalaEvent
     data object Generated : EscalaEvent
+    data object Deleted : EscalaEvent
 }

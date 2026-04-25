@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Ministro, Evento, Escala, Feedback, LogAuditoria } from '@/types';
+import { Ministro, Evento, Escala, Feedback, LogAuditoria, Indisponibilidade } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
@@ -91,6 +91,11 @@ export const EscalaService = {
     return res.data;
   },
 
+  gerarEscala: async (eventoId: number): Promise<Escala> => {
+    const res = await api.post(`/escalas/gerar/${eventoId}`);
+    return res.data;
+  },
+
   approveEscala: async (id: number): Promise<Escala> => {
     const res = await api.put(`/escalas/${id}/aprovar`);
     return res.data;
@@ -103,6 +108,26 @@ export const EscalaService = {
 
   deleteEscala: async (id: number): Promise<void> => {
     await api.delete(`/escalas/${id}`);
+  },
+};
+
+// ── Indisponibilidades ────────────────────────────────────────────────────────
+
+export const IndisponibilidadeService = {
+  listar: async (ministroId: number): Promise<Indisponibilidade[]> => {
+    const res = await api.get(`/ministros/${ministroId}/indisponibilidades`);
+    return res.data;
+  },
+  criar: async (ministroId: number, dto: Partial<Indisponibilidade>): Promise<Indisponibilidade> => {
+    const res = await api.post(`/ministros/${ministroId}/indisponibilidades`, dto);
+    return res.data;
+  },
+  atualizar: async (ministroId: number, id: number, dto: Partial<Indisponibilidade>): Promise<Indisponibilidade> => {
+    const res = await api.put(`/ministros/${ministroId}/indisponibilidades/${id}`, dto);
+    return res.data;
+  },
+  deletar: async (ministroId: number, id: number): Promise<void> => {
+    await api.delete(`/ministros/${ministroId}/indisponibilidades/${id}`);
   },
 };
 

@@ -2,27 +2,41 @@ package com.escala.ministerial.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple10 = Color(0xFF21005D)
-val Purple20 = Color(0xFF381E72)
-val Purple40 = Color(0xFF6650A4)
-val Purple80 = Color(0xFFD0BCFF)
-val Purple90 = Color(0xFFEADDFF)
+// Primary - Deep Navy Blue
+val PrimaryBlue = Color(0xFF1E3A8A)
+val PrimaryBlueContainer = Color(0xFFE0E7FF)
+val OnPrimaryBlue = Color(0xFFFFFFFF)
 
-val PurpleGrey40 = Color(0xFF625B71)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val PurpleGrey90 = Color(0xFFEADDFF)
+// Secondary - Elegant Teal
+val SecondaryTeal = Color(0xFF0F766E)
+val SecondaryTealContainer = Color(0xFFCCFBF1)
+val OnSecondaryTeal = Color(0xFFFFFFFF)
 
-val Pink40 = Color(0xFF7D5260)
-val Pink80 = Color(0xFFEFB8C8)
+// Tertiary - Warm Amber
+val TertiaryAmber = Color(0xFFD97706)
+val TertiaryAmberContainer = Color(0xFFFFF7ED)
+val OnTertiaryAmber = Color(0xFF9A3412)
 
-val Green40 = Color(0xFF4CAF50)
-val Green80 = Color(0xFFA5D6A7)
+// Surface colors - Clean and modern
+val SurfaceLight = Color(0xFFFFFFFF)
+val SurfaceVariantLight = Color(0xFFF8FAFC)
+val OnSurfaceLight = Color(0xFF0F172A)
+val OnSurfaceVariantLight = Color(0xFF64748B)
 
-val Red40 = Color(0xFFB00020)
-val Red80 = Color(0xFFEF9A9A)
+// Status colors
+val SuccessGreen = Color(0xFF059669)
+val SuccessGreenContainer = Color(0xFFD1FAE5)
+val OnSuccessGreen = Color(0xFFFFFFFF)
 
-val Amber40 = Color(0xFFF59E0B)
-val Amber80 = Color(0xFFFDE68A)
+val WarningAmber = Color(0xFFD97706)
+val WarningAmberContainer = Color(0xFFFFF7ED)
+val OnWarningAmber = Color(0xFF92400E)
 
-val Blue40 = Color(0xFF1565C0)
-val Blue80 = Color(0xFF90CAF9)
+val ErrorRed = Color(0xFFDC2626)
+val ErrorRedContainer = Color(0xFFFEE2E2)
+val OnErrorRed = Color(0xFFFFFFFF)
+
+// Neutral colors
+val NeutralGrey = Color(0xFF6B7280)
+val NeutralGreyLight = Color(0xFFF3F4F6)
+val NeutralGreyDark = Color(0xFF374151)

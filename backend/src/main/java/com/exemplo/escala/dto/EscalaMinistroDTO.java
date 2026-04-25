@@ -5,6 +5,8 @@ import java.time.LocalDate;
 public class EscalaMinistroDTO {
     private Long id;
     private Long ministroId;
+    private String ministroNome;
+    private String ministroFuncao;
     private Long escalaId;
     private boolean confirmacaoMinistro;
     private LocalDate dataConfirmacao;
@@ -17,6 +19,12 @@ public class EscalaMinistroDTO {
 
     public Long getMinistroId() { return ministroId; }
     public void setMinistroId(Long ministroId) { this.ministroId = ministroId; }
+
+    public String getMinistroNome() { return ministroNome; }
+    public void setMinistroNome(String ministroNome) { this.ministroNome = ministroNome; }
+
+    public String getMinistroFuncao() { return ministroFuncao; }
+    public void setMinistroFuncao(String ministroFuncao) { this.ministroFuncao = ministroFuncao; }
 
     public Long getEscalaId() { return escalaId; }
     public void setEscalaId(Long escalaId) { this.escalaId = escalaId; }

@@ -2,10 +2,12 @@ package com.escala.ministerial.feature.eventos.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -16,11 +18,13 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -69,11 +73,38 @@ fun EventosScreen(viewModel: EventosViewModel = hiltViewModel()) {
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Eventos") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Eventos",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                actions = {
+                    OutlinedButton(
+                        onClick = viewModel::seedTestData,
+                        modifier = Modifier.padding(end = 16.dp),
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Text("Dados Teste")
+                    }
+                },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                )
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { editingEvento = null; showForm = true }) {
-                Icon(Icons.Default.Add, null)
+            FloatingActionButton(
+                onClick = { editingEvento = null; showForm = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Novo evento")
             }
         },
     ) { padding ->
@@ -81,17 +112,24 @@ fun EventosScreen(viewModel: EventosViewModel = hiltViewModel()) {
             is EventosUiState.Loading -> LoadingScreen(Modifier.padding(padding))
             is EventosUiState.Error -> ErrorScreen(state.message, viewModel::refresh, Modifier.padding(padding))
             is EventosUiState.Success -> Column(Modifier.padding(padding).fillMaxSize()) {
-                OutlinedTextField(
-                    value = state.query,
-                    onValueChange = viewModel::search,
-                    label = { Text("Buscar evento") },
-                    leadingIcon = { Icon(Icons.Default.Search, null) },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    singleLine = true,
-                )
+                // Search Section
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = state.query,
+                        onValueChange = viewModel::search,
+                        label = { Text("Buscar evento") },
+                        leadingIcon = { Icon(Icons.Default.Search, null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.large,
+                    )
+                }
+
+                // Events List
                 LazyColumn(
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(state.filtered, key = { it.id }) { evento ->
                         EventoCard(
@@ -132,30 +170,93 @@ private fun EventoCard(
     onCancelar: (Evento) -> Unit,
     onDelete: (Evento) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        ),
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Header with event info and actions
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
-                Column(Modifier.weight(1f)) {
-                    Text(evento.nome, style = MaterialTheme.typography.titleMedium)
-                    Text("${evento.data.format(DATE_FORMATTER)} • ${evento.horario}", style = MaterialTheme.typography.bodySmall)
-                    evento.local?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                }
-                Row {
-                    if (!evento.cancelado) {
-                        IconButton(onClick = { onEdit(evento) }) { Icon(Icons.Default.Edit, null) }
-                        IconButton(onClick = { onCancelar(evento) }) { Icon(Icons.Default.Block, null) }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        evento.nome,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "${evento.data.format(DATE_FORMATTER)} • ${evento.horario}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    evento.local?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    IconButton(onClick = { onDelete(evento) }) { Icon(Icons.Default.Delete, null) }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (!evento.cancelado) {
+                        IconButton(
+                            onClick = { onEdit(evento) },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Editar",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        IconButton(
+                            onClick = { onCancelar(evento) },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Block,
+                                contentDescription = "Cancelar",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = { onDelete(evento) },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Excluir",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatusBadge(text = evento.tipoEvento.label, variant = BadgeVariant.INFO)
-                if (evento.cancelado) StatusBadge(text = "Cancelado", variant = BadgeVariant.ERROR)
-                Text("Máx: ${evento.maxMinistros}", style = MaterialTheme.typography.bodySmall)
+
+            // Status badges and capacity
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StatusBadge(text = evento.tipoEvento.label, variant = BadgeVariant.INFO)
+                    if (evento.cancelado) StatusBadge(text = "Cancelado", variant = BadgeVariant.ERROR)
+                }
+                Text(
+                    "Máx: ${evento.maxMinistros}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

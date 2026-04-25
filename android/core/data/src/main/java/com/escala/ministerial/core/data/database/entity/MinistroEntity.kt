@@ -17,4 +17,5 @@ data class MinistroEntity(
     val statusCurso: Boolean,
     val escalasMes: Int,
     val funcao: String,
+    val funcaoEspecificada: String? = null,
 )

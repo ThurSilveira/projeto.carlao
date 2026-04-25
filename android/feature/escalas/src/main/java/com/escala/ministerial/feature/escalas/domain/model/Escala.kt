@@ -12,6 +12,7 @@ data class Escala(
     val observacao: String?,
     val status: StatusEscala,
     val ministros: List<EscalaMinistro>,
+    val totalMinistros: Int = ministros.size,
 )
 
 data class EscalaMinistro(

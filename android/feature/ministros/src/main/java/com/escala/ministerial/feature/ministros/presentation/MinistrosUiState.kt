@@ -1,5 +1,6 @@
 package com.escala.ministerial.feature.ministros.presentation
 
+import com.escala.ministerial.feature.ministros.domain.model.Indisponibilidade
 import com.escala.ministerial.feature.ministros.domain.model.Ministro
 
 sealed interface MinistrosUiState {
@@ -17,4 +18,14 @@ sealed interface MinistroEvent {
     data class ShowMessage(val message: String) : MinistroEvent
     data object Saved : MinistroEvent
     data object Deleted : MinistroEvent
+}
+
+sealed interface IndisponibilidadeUiState {
+    data object Idle : IndisponibilidadeUiState
+    data class Active(
+        val ministroId: Long,
+        val ministroNome: String,
+        val items: List<Indisponibilidade>,
+        val loading: Boolean = false,
+    ) : IndisponibilidadeUiState
 }

@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -14,10 +17,13 @@ import androidx.compose.material.icons.filled.Reply
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -34,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.escala.ministerial.core.ui.components.BadgeVariant
@@ -68,33 +73,86 @@ fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Feedbacks") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Feedbacks",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                )
+            )
+        },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         when (val state = uiState) {
             is FeedbackUiState.Loading -> LoadingScreen(Modifier.padding(padding))
             is FeedbackUiState.Error -> ErrorScreen(state.message, viewModel::refresh, Modifier.padding(padding))
             is FeedbackUiState.Success -> Column(Modifier.padding(padding).fillMaxSize()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("${state.feedbacks.size}", style = MaterialTheme.typography.titleLarge)
-                        Text("Total", style = MaterialTheme.typography.bodySmall)
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("%.1f".format(state.mediaNota), style = MaterialTheme.typography.titleLarge, color = Color(0xFFFF9800))
-                        Text("Nota média", style = MaterialTheme.typography.bodySmall)
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("${state.pendentes}", style = MaterialTheme.typography.titleLarge, color = Color(0xFFF59E0B))
-                        Text("Pendentes", style = MaterialTheme.typography.bodySmall)
+                // Stats Section
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        shape = MaterialTheme.shapes.large,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "${state.feedbacks.size}",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Text(
+                                    "Total",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "%.1f".format(state.mediaNota),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    "Nota média",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    "${state.pendentes}",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                                Text(
+                                    "Pendentes",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                )
+                            }
+                        }
                     }
                 }
+
+                // Feedbacks List
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(state.feedbacks, key = { it.id }) { feedback ->
                         FeedbackCard(
@@ -143,34 +201,105 @@ private fun FeedbackCard(feedback: Feedback, onResponder: (Feedback) -> Unit) {
         StatusFeedback.ARQUIVADO -> BadgeVariant.NEUTRAL
     }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        ),
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Header with minister info and rating
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
-                Column(Modifier.weight(1f)) {
-                    Text(feedback.ministroNome, style = MaterialTheme.typography.titleMedium)
-                    Text(feedback.eventoNome, style = MaterialTheme.typography.bodySmall)
-                    feedback.dataEnvio?.let { Text(it.format(DT_FORMATTER), style = MaterialTheme.typography.bodySmall) }
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Star, null, tint = Color(0xFFFF9800))
-                        Text("${feedback.nota}/10", style = MaterialTheme.typography.titleMedium)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        feedback.ministroNome,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        feedback.eventoNome,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    feedback.dataEnvio?.let {
+                        Text(
+                            it.format(DT_FORMATTER),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Rating display
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            "${feedback.nota}/10",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    // Respond button for pending feedback
                     if (feedback.status == StatusFeedback.PENDENTE) {
-                        IconButton(onClick = { onResponder(feedback) }) {
-                            Icon(Icons.Default.Reply, contentDescription = "Responder")
+                        OutlinedButton(
+                            onClick = { onResponder(feedback) },
+                            shape = MaterialTheme.shapes.small,
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Reply,
+                                contentDescription = "Responder",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Responder", style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
             }
-            feedback.comentario?.let { Text("\"$it\"", style = MaterialTheme.typography.bodyMedium) }
+
+            // Comment
+            feedback.comentario?.let {
+                Text(
+                    "\"$it\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
+            // Status badge
             StatusBadge(text = feedback.status.label, variant = badgeVariant)
+
+            // Response
             feedback.resposta?.let {
-                Text("Resposta: $it", style = MaterialTheme.typography.bodySmall, color = Color(0xFF4CAF50))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    "Resposta:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

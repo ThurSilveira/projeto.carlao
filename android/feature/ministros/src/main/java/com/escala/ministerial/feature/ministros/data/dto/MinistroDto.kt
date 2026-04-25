@@ -15,4 +15,7 @@ data class MinistroDto(
     val statusCurso: Boolean = false,
     val escalasMes: Int = 0,
     val funcao: String = "LEITURA",
+    val funcaoEspecificada: String? = null,
+    val escalasAgendadas: List<String> = emptyList(),
+    val indisponibilidades: List<IndisponibilidadeDto> = emptyList(),
 )

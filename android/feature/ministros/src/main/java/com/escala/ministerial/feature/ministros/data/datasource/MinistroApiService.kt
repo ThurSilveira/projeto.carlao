@@ -1,5 +1,6 @@
 package com.escala.ministerial.feature.ministros.data.datasource
 
+import com.escala.ministerial.feature.ministros.data.dto.IndisponibilidadeDto
 import com.escala.ministerial.feature.ministros.data.dto.MinistroDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -23,4 +24,26 @@ interface MinistroApiService {
 
     @DELETE("ministros/{id}")
     suspend fun delete(@Path("id") id: Long)
+
+    @GET("ministros/{ministroId}/indisponibilidades")
+    suspend fun getIndisponibilidades(@Path("ministroId") ministroId: Long): List<IndisponibilidadeDto>
+
+    @POST("ministros/{ministroId}/indisponibilidades")
+    suspend fun createIndisponibilidade(
+        @Path("ministroId") ministroId: Long,
+        @Body dto: IndisponibilidadeDto,
+    ): IndisponibilidadeDto
+
+    @PUT("ministros/{ministroId}/indisponibilidades/{id}")
+    suspend fun updateIndisponibilidade(
+        @Path("ministroId") ministroId: Long,
+        @Path("id") id: Long,
+        @Body dto: IndisponibilidadeDto,
+    ): IndisponibilidadeDto
+
+    @DELETE("ministros/{ministroId}/indisponibilidades/{id}")
+    suspend fun deleteIndisponibilidade(
+        @Path("ministroId") ministroId: Long,
+        @Path("id") id: Long,
+    )
 }

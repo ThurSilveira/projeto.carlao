@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -42,34 +43,60 @@ fun AuditoriaScreen(viewModel: AuditoriaViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Auditoria") }) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Auditoria",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                )
+            )
+        },
     ) { padding ->
         when (val state = uiState) {
             is AuditoriaUiState.Loading -> LoadingScreen(Modifier.padding(padding))
             is AuditoriaUiState.Error -> ErrorScreen(state.message, viewModel::refresh, Modifier.padding(padding))
             is AuditoriaUiState.Success -> Column(Modifier.padding(padding).fillMaxSize()) {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    item {
-                        FilterChip(
-                            selected = state.entidadeFilter == null,
-                            onClick = { viewModel.setEntidadeFilter(null) },
-                            label = { Text("Todos") },
-                        )
-                    }
-                    items(ENTIDADES) { entidade ->
-                        FilterChip(
-                            selected = state.entidadeFilter == entidade,
-                            onClick = { viewModel.setEntidadeFilter(entidade) },
-                            label = { Text(entidade) },
-                        )
+                // Filter Section
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        "Filtros",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        item {
+                            FilterChip(
+                                selected = state.entidadeFilter == null,
+                                onClick = { viewModel.setEntidadeFilter(null) },
+                                label = { Text("Todos") },
+                                shape = MaterialTheme.shapes.large,
+                            )
+                        }
+                        items(ENTIDADES) { entidade ->
+                            FilterChip(
+                                selected = state.entidadeFilter == entidade,
+                                onClick = { viewModel.setEntidadeFilter(entidade) },
+                                label = { Text(entidade) },
+                                shape = MaterialTheme.shapes.large,
+                            )
+                        }
                     }
                 }
+
+                // Audit Logs List
                 LazyColumn(
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 0.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(state.filtered, key = { it.id }) { log ->
                         LogCard(log)
@@ -89,35 +116,76 @@ private fun LogCard(log: LogAuditoria) {
         TipoAcao.CANCELADO -> BadgeVariant.WARNING
         else -> BadgeVariant.NEUTRAL
     }
-    val acaoColor = when (log.acao) {
-        TipoAcao.CRIADO -> Color(0xFF4CAF50)
-        TipoAcao.DELETADO -> Color(0xFFB00020)
-        TipoAcao.APROVADO -> Color(0xFF1565C0)
-        TipoAcao.CANCELADO -> Color(0xFFF59E0B)
-        else -> Color.Gray
-    }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+        ),
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Header with entity, action and timestamp
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.Top,
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     StatusBadge(text = log.entidade, variant = BadgeVariant.NEUTRAL)
                     StatusBadge(text = log.acao.label, variant = acaoBadgeVariant)
                 }
-                Text(log.dataHora.format(DT_FORMATTER), style = MaterialTheme.typography.bodySmall)
+                Text(
+                    log.dataHora.format(DT_FORMATTER),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+
+            // Status change
             if (log.statusAnterior != null || log.statusNovo != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    log.statusAnterior?.let { Text("$it →", style = MaterialTheme.typography.bodySmall) }
-                    log.statusNovo?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = acaoColor) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Status: ",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    log.statusAnterior?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            " → ",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    log.statusNovo?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
+
+            // User who performed the action
             log.realizadoPorId?.let {
-                Text("Por: $it", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Realizado por: $it",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

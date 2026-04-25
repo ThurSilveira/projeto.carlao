@@ -37,6 +37,7 @@ fun EventoFormDialog(
     var local by remember { mutableStateOf(evento?.local ?: "") }
     var maxMinistros by remember { mutableStateOf(evento?.maxMinistros?.toString() ?: "6") }
     var tipo by remember { mutableStateOf(evento?.tipoEvento ?: TipoEvento.MISSA_PAROQUIAL) }
+    var tipoEspecificado by remember { mutableStateOf(evento?.tipoEspecificado ?: "") }
     var tipoExpanded by remember { mutableStateOf(false) }
     var nomeError by remember { mutableStateOf("") }
     var dataError by remember { mutableStateOf("") }
@@ -86,6 +87,15 @@ fun EventoFormDialog(
                         }
                     }
                 }
+                if (tipo == TipoEvento.OUTRO) {
+                    OutlinedTextField(
+                        value = tipoEspecificado,
+                        onValueChange = { tipoEspecificado = it },
+                        label = { Text("Especifique o tipo") },
+                        placeholder = { Text("Ex: Celebração de aniversário...") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
         },
         confirmButton = {
@@ -100,6 +110,7 @@ fun EventoFormDialog(
                         data = parsedDate,
                         horario = horario.trim(),
                         tipoEvento = tipo,
+                        tipoEspecificado = tipoEspecificado.ifBlank { null },
                         maxMinistros = maxMinistros.toIntOrNull() ?: 6,
                         local = local.ifBlank { null },
                         cancelado = evento?.cancelado ?: false,

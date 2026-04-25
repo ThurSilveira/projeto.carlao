@@ -2,6 +2,7 @@ package com.escala.ministerial.feature.eventos.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.escala.ministerial.core.data.seed.LocalSeedDataSeeder
 import com.escala.ministerial.core.network.model.ApiResult
 import com.escala.ministerial.feature.eventos.domain.model.Evento
 import com.escala.ministerial.feature.eventos.domain.usecase.CancelarEventoUseCase
@@ -25,6 +26,7 @@ class EventosViewModel @Inject constructor(
     private val saveEvento: SaveEventoUseCase,
     private val cancelarEvento: CancelarEventoUseCase,
     private val deleteEvento: DeleteEventoUseCase,
+    private val seeder: LocalSeedDataSeeder,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EventosUiState>(EventosUiState.Loading)
@@ -89,6 +91,13 @@ class EventosViewModel @Inject constructor(
                 is ApiResult.Error -> _events.send(EventoEvent.ShowMessage(result.message))
                 else -> Unit
             }
+        }
+    }
+
+    fun seedTestData() {
+        viewModelScope.launch {
+            seeder.addRandom()
+            _events.send(EventoEvent.ShowMessage("+10 eventos aleatórios adicionados!"))
         }
     }
 

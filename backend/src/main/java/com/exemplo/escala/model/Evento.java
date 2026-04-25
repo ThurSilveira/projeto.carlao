@@ -28,6 +28,7 @@ public class Evento {
     private Integer maxMinistros = 6;
     private String local;
     private boolean cancelado = false;
+    private String tipoEspecificado;
 
     public Evento() {}
 
@@ -54,4 +55,7 @@ public class Evento {
 
     public boolean isCancelado() { return cancelado; }
     public void setCancelado(boolean cancelado) { this.cancelado = cancelado; }
+
+    public String getTipoEspecificado() { return tipoEspecificado; }
+    public void setTipoEspecificado(String tipoEspecificado) { this.tipoEspecificado = tipoEspecificado; }
 }

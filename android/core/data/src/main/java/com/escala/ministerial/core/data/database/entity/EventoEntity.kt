@@ -11,6 +11,7 @@ data class EventoEntity(
     val data: LocalDate,
     val horario: String,
     val tipoEvento: String,
+    val tipoEspecificado: String? = null,
     val maxMinistros: Int,
     val local: String?,
     val cancelado: Boolean,

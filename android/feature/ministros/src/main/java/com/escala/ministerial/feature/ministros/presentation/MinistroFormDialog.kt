@@ -41,6 +41,7 @@ fun MinistroFormDialog(
     var observacoes by remember { mutableStateOf(ministro?.observacoes ?: "") }
     var ativo by remember { mutableStateOf(ministro?.ativo ?: true) }
     var funcao by remember { mutableStateOf(ministro?.funcao ?: FuncaoMinistro.LEITURA) }
+    var funcaoEspecificada by remember { mutableStateOf(ministro?.funcaoEspecificada ?: "") }
     var visitasAoInfermo by remember { mutableStateOf(ministro?.visitasAoInfermo ?: false) }
     var statusCurso by remember { mutableStateOf(ministro?.statusCurso ?: false) }
     var funcaoMenuExpanded by remember { mutableStateOf(false) }
@@ -111,6 +112,15 @@ fun MinistroFormDialog(
                         }
                     }
                 }
+                if (funcao == FuncaoMinistro.OUTRO) {
+                    OutlinedTextField(
+                        value = funcaoEspecificada,
+                        onValueChange = { funcaoEspecificada = it },
+                        label = { Text("Especifique a função") },
+                        placeholder = { Text("Ex: Proclamador, Coroinha...") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = ativo, onCheckedChange = { ativo = it })
                     Text("Ativo")
@@ -145,6 +155,7 @@ fun MinistroFormDialog(
                             statusCurso = statusCurso,
                             escalasMes = ministro?.escalasMes ?: 0,
                             funcao = funcao,
+                            funcaoEspecificada = funcaoEspecificada.ifBlank { null },
                         )
                     )
                 }

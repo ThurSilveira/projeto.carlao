@@ -1,11 +1,15 @@
 package com.exemplo.escala.service;
 
+import com.exemplo.escala.dto.IndisponibilidadeDTO;
 import com.exemplo.escala.dto.MinistroDTO;
 import com.exemplo.escala.model.Ministro;
 import com.exemplo.escala.model.enums.FuncaoMinistro;
+import com.exemplo.escala.repository.EscalaMinistroRepository;
+import com.exemplo.escala.repository.IndisponibilidadeRepository;
 import com.exemplo.escala.repository.MinistroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +18,12 @@ public class MinistroService {
 
     @Autowired
     private MinistroRepository repository;
+
+    @Autowired
+    private IndisponibilidadeRepository indisponibilidadeRepository;
+
+    @Autowired
+    private EscalaMinistroRepository escalaMinistroRepository;
 
     @Autowired
     private LogAuditoriaService auditoriaService;
@@ -60,6 +70,7 @@ public class MinistroService {
         ministro.setAtivo(dto.isAtivo());
         ministro.setVisitasAoInfermo(dto.isVisitasAoInfermo());
         ministro.setStatusCurso(dto.isStatusCurso());
+        ministro.setFuncaoEspecificada(dto.getFuncaoEspecificada());
         if (dto.getFuncao() != null) {
             try {
                 ministro.setFuncao(FuncaoMinistro.valueOf(dto.getFuncao()));
@@ -82,6 +93,27 @@ public class MinistroService {
         dto.setStatusCurso(m.isStatusCurso());
         dto.setEscalasMes(m.getEscalasMes());
         dto.setFuncao(m.getFuncao() != null ? m.getFuncao().name() : null);
+        dto.setFuncaoEspecificada(m.getFuncaoEspecificada());
+
+        List<IndisponibilidadeDTO> indisps = indisponibilidadeRepository.findByMinistroId(m.getId())
+                .stream().map(i -> {
+                    IndisponibilidadeDTO idto = new IndisponibilidadeDTO();
+                    idto.setId(i.getId());
+                    idto.setMinistroId(m.getId());
+                    idto.setData(i.getData());
+                    idto.setHorarioInicio(i.getHorarioInicio());
+                    idto.setHorarioFim(i.getHorarioFim());
+                    idto.setMotivo(i.getMotivo());
+                    return idto;
+                }).collect(Collectors.toList());
+        dto.setIndisponibilidades(indisps);
+
+        List<LocalDate> datas = escalaMinistroRepository.findByMinistroId(m.getId())
+                .stream()
+                .map(em -> em.getEscala().getEvento().getData())
+                .collect(Collectors.toList());
+        dto.setEscalasAgendadas(datas);
+
         return dto;
     }
 }

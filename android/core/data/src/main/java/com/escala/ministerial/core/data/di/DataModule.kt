@@ -6,6 +6,7 @@ import com.escala.ministerial.core.data.database.EscalaDatabase
 import com.escala.ministerial.core.data.database.dao.EscalaDao
 import com.escala.ministerial.core.data.database.dao.EventoDao
 import com.escala.ministerial.core.data.database.dao.FeedbackDao
+import com.escala.ministerial.core.data.database.dao.IndisponibilidadeDao
 import com.escala.ministerial.core.data.database.dao.LogAuditoriaDao
 import com.escala.ministerial.core.data.database.dao.MinistroDao
 import dagger.Module
@@ -40,4 +41,7 @@ object DataModule {
 
     @Provides
     fun provideLogAuditoriaDao(db: EscalaDatabase): LogAuditoriaDao = db.logAuditoriaDao()
+
+    @Provides
+    fun provideIndisponibilidadeDao(db: EscalaDatabase): IndisponibilidadeDao = db.indisponibilidadeDao()
 }

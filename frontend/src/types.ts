@@ -58,13 +58,14 @@ export interface Ministro {
   observacoes?: string;
   ativo: boolean;
   funcao: FuncaoMinistro;
+  funcaoEspecificada?: string;
   visitasAoInfermo: boolean;
   statusCurso: boolean;
   escalasMes?: number;
   aptidoes: TipoEvento[];
   indisponibilidades: Indisponibilidade[];
+  escalasAgendadas?: string[];
   disponibilidadesRec: DisponibilidadeRecorrente[];
-  escalasMinistro: EscalaMinistro[];
 }
 
 export interface Coordenador {
@@ -95,6 +96,7 @@ export interface Evento {
   data: string;
   horario: string;
   tipoEvento: TipoEvento;
+  tipoEspecificado?: string;
   maxMinistros: number;
   local: string;
   cancelado: boolean;
@@ -114,6 +116,8 @@ export interface Escala {
 export interface EscalaMinistro {
   id?: number;
   ministroId: number;
+  ministroNome?: string;
+  ministroFuncao?: string;
   escalaId: number;
   confirmacaoMinistro: boolean;
   dataConfirmacao?: string;
@@ -122,11 +126,11 @@ export interface EscalaMinistro {
 
 export interface Indisponibilidade {
   id?: number;
+  ministroId?: number;
   data: string;
   horarioInicio: string;
   horarioFim: string;
   motivo: string;
-  tipo: TipoIndisponibilidade;
 }
 
 export interface DisponibilidadeRecorrente {

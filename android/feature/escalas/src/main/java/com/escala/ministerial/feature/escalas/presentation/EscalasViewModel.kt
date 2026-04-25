@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.escala.ministerial.core.network.model.ApiResult
 import com.escala.ministerial.feature.escalas.domain.model.StatusEscala
+import com.escala.ministerial.feature.escalas.domain.repository.EscalaRepository
 import com.escala.ministerial.feature.escalas.domain.usecase.AprovarEscalaUseCase
 import com.escala.ministerial.feature.escalas.domain.usecase.CancelarEscalaUseCase
 import com.escala.ministerial.feature.escalas.domain.usecase.GerarEscalaUseCase
@@ -25,6 +26,7 @@ class EscalasViewModel @Inject constructor(
     private val aprovarEscala: AprovarEscalaUseCase,
     private val cancelarEscala: CancelarEscalaUseCase,
     private val gerarEscala: GerarEscalaUseCase,
+    private val repository: EscalaRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EscalasUiState>(EscalasUiState.Loading)
@@ -95,6 +97,16 @@ class EscalasViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = gerarEscala(eventoId)) {
                 is ApiResult.Success -> _events.send(EscalaEvent.Generated)
+                is ApiResult.Error -> _events.send(EscalaEvent.ShowMessage(result.message))
+                else -> Unit
+            }
+        }
+    }
+
+    fun delete(id: Long) {
+        viewModelScope.launch {
+            when (val result = repository.delete(id)) {
+                is ApiResult.Success -> _events.send(EscalaEvent.Deleted)
                 is ApiResult.Error -> _events.send(EscalaEvent.ShowMessage(result.message))
                 else -> Unit
             }

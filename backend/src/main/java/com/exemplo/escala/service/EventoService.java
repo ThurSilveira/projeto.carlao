@@ -67,6 +67,7 @@ public class EventoService {
         evento.setLocal(dto.getLocal());
         evento.setMaxMinistros(dto.getMaxMinistros() != null ? dto.getMaxMinistros() : 6);
         evento.setCancelado(dto.isCancelado());
+        evento.setTipoEspecificado(dto.getTipoEspecificado());
         if (dto.getTipoEvento() != null) {
             try {
                 evento.setTipoEvento(TipoEvento.valueOf(dto.getTipoEvento()));
@@ -83,6 +84,7 @@ public class EventoService {
         dto.setData(e.getData());
         dto.setHorario(e.getHorario());
         dto.setTipoEvento(e.getTipoEvento() != null ? e.getTipoEvento().name() : null);
+        dto.setTipoEspecificado(e.getTipoEspecificado());
         dto.setMaxMinistros(e.getMaxMinistros());
         dto.setLocal(e.getLocal());
         dto.setCancelado(e.isCancelado());

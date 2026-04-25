@@ -1,6 +1,8 @@
 package com.escala.ministerial.feature.escalas.data.repository
 
 import com.escala.ministerial.core.data.database.dao.EscalaDao
+import com.escala.ministerial.core.data.database.dao.EventoDao
+import com.escala.ministerial.core.data.database.dao.MinistroDao
 import com.escala.ministerial.core.data.database.entity.EscalaEntity
 import com.escala.ministerial.core.network.model.ApiResult
 import com.escala.ministerial.core.network.model.safeApiCall
@@ -11,6 +13,7 @@ import com.escala.ministerial.feature.escalas.domain.model.EscalaMinistro
 import com.escala.ministerial.feature.escalas.domain.model.StatusEscala
 import com.escala.ministerial.feature.escalas.domain.repository.EscalaRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import javax.inject.Inject
@@ -18,6 +21,8 @@ import javax.inject.Inject
 class EscalaRepositoryImpl @Inject constructor(
     private val api: EscalaApiService,
     private val dao: EscalaDao,
+    private val ministroDao: MinistroDao,
+    private val eventoDao: EventoDao,
 ) : EscalaRepository {
 
     override fun observeAll(): Flow<List<Escala>> =
@@ -38,12 +43,62 @@ class EscalaRepositoryImpl @Inject constructor(
             result.toDomain()
         }
 
-    override suspend fun gerar(eventoId: Long): ApiResult<Escala> =
-        safeApiCall {
-            val result = api.gerar(eventoId)
-            dao.upsertAll(listOf(result.toEntity()))
-            result.toDomain()
+    override suspend fun gerar(eventoId: Long): ApiResult<Escala> {
+        val remote = safeApiCall { api.gerar(eventoId) }
+        if (remote is ApiResult.Success) {
+            dao.upsertAll(listOf(remote.data.toEntity()))
+            return ApiResult.Success(remote.data.toDomain())
         }
+        return gerarLocal(eventoId)
+    }
+
+    private suspend fun gerarLocal(eventoId: Long): ApiResult<Escala> {
+        val evento = eventoDao.findById(eventoId)
+            ?: return ApiResult.Error("Evento $eventoId não encontrado no banco local.")
+
+        val ativos = ministroDao.observeAll().first().filter { it.ativo }
+        if (ativos.isEmpty()) return ApiResult.Error("Nenhum ministro ativo cadastrado.")
+
+        val vagas = evento.maxMinistros
+        val selecionados = ativos.shuffled().sortedBy { it.escalasMes }.take(vagas)
+
+        val escalaId = System.currentTimeMillis()
+        val entity = EscalaEntity(
+            id = escalaId,
+            eventoId = evento.id,
+            eventoNome = evento.nome,
+            eventoData = evento.data,
+            eventoHorario = evento.horario,
+            dataAtribuicao = LocalDate.now(),
+            observacao = "Gerada localmente (modo offline)",
+            status = "PROPOSTA",
+            totalMinistros = selecionados.size,
+        )
+        dao.upsertAll(listOf(entity))
+        ministroDao.upsertAll(selecionados.map { it.copy(escalasMes = it.escalasMes + 1) })
+
+        return ApiResult.Success(
+            Escala(
+                id = escalaId,
+                eventoId = evento.id,
+                eventoNome = evento.nome,
+                eventoData = evento.data,
+                eventoHorario = evento.horario,
+                dataAtribuicao = LocalDate.now(),
+                observacao = "Gerada localmente (modo offline)",
+                status = StatusEscala.PROPOSTA,
+                ministros = selecionados.map { m ->
+                    EscalaMinistro(
+                        id = 0L,
+                        ministroId = m.id,
+                        ministroNome = m.nome,
+                        confirmacaoMinistro = false,
+                        substituido = false,
+                    )
+                },
+            )
+        )
+    }
 
     override suspend fun aprovar(id: Long): ApiResult<Escala> =
         safeApiCall {
@@ -84,6 +139,7 @@ private fun EscalaDto.toDomain(): Escala = Escala(
             substituido = m.substituido,
         )
     },
+    totalMinistros = ministros.size,
 )
 
 private fun EscalaDto.toEntity(): EscalaEntity = EscalaEntity(
@@ -108,4 +164,5 @@ private fun EscalaEntity.toDomain(): Escala = Escala(
     observacao = observacao,
     status = runCatching { StatusEscala.valueOf(status) }.getOrDefault(StatusEscala.PROPOSTA),
     ministros = emptyList(),
+    totalMinistros = totalMinistros,
 )
