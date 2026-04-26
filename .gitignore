@@ -61,9 +61,8 @@ application-*.properties
 # Gradle / Android
 .gradle/
 build/
+**/build-logic/bin/
 gradle-app.setting
-gradlew
-gradlew.bat
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 *.iml
@@ -77,13 +76,18 @@ local.properties
 *.keystore
 *.p12
 
-# iOS / Xcode
+# iOS / Xcode (xcodeproj é gerado por xcodegen via project.yml)
 /.build
 /Packages
 xcuserdata/
+**/xcuserdata/
 DerivedData/
+**/DerivedData/
 *.xcworkspace
 *.xcodeproj
+*.xcarchive
+*.ipa
+Pods/
 
 # Node.js / Frontend
 node_modules/

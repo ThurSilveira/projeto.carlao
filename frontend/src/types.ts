@@ -48,7 +48,6 @@ export enum TipoIndisponibilidade {
   SURPRESA = 'SURPRESA',
 }
 
-// Interfaces
 export interface Ministro {
   id?: number;
   nome: string;

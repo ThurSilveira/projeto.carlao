@@ -100,10 +100,6 @@ public class EscalaService {
         return toDTO(salvo);
     }
 
-    // -------------------------------------------------------------------------
-    // CRUD padrão
-    // -------------------------------------------------------------------------
-
     public EscalaDTO criar(EscalaDTO dto) {
         Evento evento = eventoRepository.findById(dto.getEventoId())
                 .orElseThrow(() -> new IllegalArgumentException("Evento não encontrado: " + dto.getEventoId()));

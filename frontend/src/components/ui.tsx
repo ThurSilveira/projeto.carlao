@@ -40,7 +40,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-// Card Component
 interface CardProps {
   className?: string;
   children: React.ReactNode;
@@ -81,7 +80,6 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'primary', children, cla
   );
 };
 
-// Input Component
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
@@ -128,7 +126,6 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input';
 
-// Select Component
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
@@ -172,7 +169,6 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
 
 Select.displayName = 'Select';
 
-// Loading Spinner
 export const Spinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }) => {
   const sizes = {
     sm: 'w-4 h-4',
@@ -189,7 +185,6 @@ export const Spinner: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size = 'md' }
   );
 };
 
-// Alert Component
 interface AlertProps {
   variant?: 'info' | 'success' | 'warning' | 'error';
   title?: string;
@@ -224,7 +219,6 @@ export const Alert: React.FC<AlertProps> = ({ variant = 'info', title, children,
   );
 };
 
-// Modal Component
 interface ModalProps {
   isOpen: boolean;
   title: string;
@@ -259,7 +253,6 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, children, onClose, 
   );
 };
 
-// Tabs Component
 interface TabsProps {
   tabs: Array<{ label: string; id: string; content: React.ReactNode }>;
   defaultTabId?: string;
