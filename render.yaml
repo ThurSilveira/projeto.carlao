@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: escala-ministerial-api
+    env: java
+    plan: free
+    rootDir: backend
+    buildCommand: ./mvnw clean package -DskipTests
+    startCommand: java -Dserver.port=$PORT -Xmx256m -jar target/escala-ministerial-1.0.0.jar
+    healthCheckPath: /api/public/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_SSL
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: LOGGING_LEVEL
+        value: WARN
