@@ -10,41 +10,30 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "chart.bar.fill")
-                }
+                .tabItem { Label("Dashboard", systemImage: "chart.bar.fill") }
                 .tag(Tab.dashboard)
 
             MinistrosView()
-                .tabItem {
-                    Label("Ministros", systemImage: "person.3.fill")
-                }
+                .tabItem { Label("Ministros", systemImage: "person.3.fill") }
                 .tag(Tab.ministros)
 
             EventosView()
-                .tabItem {
-                    Label("Eventos", systemImage: "calendar")
-                }
+                .tabItem { Label("Eventos", systemImage: "calendar") }
                 .tag(Tab.eventos)
 
             EscalasView()
-                .tabItem {
-                    Label("Escalas", systemImage: "clock.fill")
-                }
+                .tabItem { Label("Escalas", systemImage: "clock.fill") }
                 .tag(Tab.escalas)
 
             FeedbackView()
-                .tabItem {
-                    Label("Feedback", systemImage: "bubble.left.fill")
-                }
+                .tabItem { Label("Feedback", systemImage: "bubble.left.fill") }
                 .tag(Tab.feedback)
 
             AuditoriaView()
-                .tabItem {
-                    Label("Auditoria", systemImage: "doc.text.magnifyingglass")
-                }
+                .tabItem { Label("Auditoria", systemImage: "doc.text.magnifyingglass") }
                 .tag(Tab.auditoria)
         }
+        .tint(.appPrimary)
     }
 }
 

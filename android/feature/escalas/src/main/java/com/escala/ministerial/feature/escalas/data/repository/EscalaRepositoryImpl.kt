@@ -107,6 +107,13 @@ class EscalaRepositoryImpl @Inject constructor(
             result.toDomain()
         }
 
+    override suspend fun confirmar(id: Long): ApiResult<Escala> =
+        safeApiCall {
+            val result = api.confirmar(id)
+            dao.upsertAll(listOf(result.toEntity()))
+            result.toDomain()
+        }
+
     override suspend fun cancelar(id: Long): ApiResult<Escala> =
         safeApiCall {
             val result = api.cancelar(id)

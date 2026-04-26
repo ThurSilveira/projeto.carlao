@@ -83,6 +83,16 @@ class EscalasViewModel @Inject constructor(
         }
     }
 
+    fun confirmar(id: Long) {
+        viewModelScope.launch {
+            when (val result = repository.confirmar(id)) {
+                is ApiResult.Success -> _events.send(EscalaEvent.Confirmed)
+                is ApiResult.Error -> _events.send(EscalaEvent.ShowMessage(result.message))
+                else -> Unit
+            }
+        }
+    }
+
     fun cancelar(id: Long) {
         viewModelScope.launch {
             when (val result = cancelarEscala(id)) {

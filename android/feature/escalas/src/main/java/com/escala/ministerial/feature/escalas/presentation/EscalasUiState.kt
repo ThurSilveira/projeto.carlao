@@ -17,6 +17,7 @@ sealed interface EscalaEvent {
     data class ShowMessage(val message: String) : EscalaEvent
     data object Created : EscalaEvent
     data object Approved : EscalaEvent
+    data object Confirmed : EscalaEvent
     data object Cancelled : EscalaEvent
     data object Generated : EscalaEvent
     data object Deleted : EscalaEvent

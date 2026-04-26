@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Playfair+Display:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,79 +10,101 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-50;
+    @apply bg-neutral-100 text-slate-900 dark:bg-neutral-900 dark:text-slate-50 font-sans;
   }
 
   * {
     @apply scroll-smooth;
   }
 
-  /* Accessibility focus styles */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply outline-2 outline-offset-2 outline-primary-600;
   }
 
-  /* Smooth transitions */
   button,
   input,
   select,
   textarea {
     @apply transition-colors duration-200;
   }
+
+  h1, h2, h3 {
+    @apply font-serif;
+  }
 }
 
 @layer components {
   .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-slate-200 text-slate-900 rounded-lg font-medium hover:bg-slate-300 dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply px-4 py-2 bg-secondary-100 text-secondary-600 rounded-lg font-semibold hover:bg-secondary-200 dark:bg-secondary-800 dark:text-secondary-300 dark:hover:bg-secondary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
 
   .btn-danger {
-    @apply px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
   }
 
   .input-field {
-    @apply w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 dark:text-white dark:bg-slate-800 dark:border-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 disabled:bg-slate-100 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-colors;
+    @apply w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 dark:text-white dark:bg-neutral-850 dark:border-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:bg-slate-100 dark:disabled:bg-neutral-800 disabled:cursor-not-allowed transition-colors;
   }
 
   .card {
-    @apply bg-white dark:bg-slate-800 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200 dark:border-slate-700 p-6;
+    @apply bg-white dark:bg-neutral-850 rounded-xl shadow-sm border border-slate-200 dark:border-neutral-700 p-6;
   }
 
+  /* StatusBadge — pill + colored dot */
   .badge {
-    @apply inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-xs font-semibold;
+  }
+
+  .badge::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full flex-shrink-0;
   }
 
   .badge-primary {
-    @apply badge bg-primary-600 text-white;
+    @apply badge bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-200;
   }
+  .badge-primary::before { @apply bg-primary-600; }
+
+  .badge-secondary {
+    @apply badge bg-secondary-100 text-secondary-600 dark:bg-secondary-800 dark:text-secondary-300;
+  }
+  .badge-secondary::before { @apply bg-secondary-600; }
 
   .badge-success {
-    @apply badge bg-green-600 text-white;
+    @apply badge bg-success-100 text-success-600 dark:bg-success-900 dark:text-green-300;
   }
+  .badge-success::before { @apply bg-success-600; }
 
   .badge-warning {
-    @apply badge bg-amber-600 text-white;
+    @apply badge bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300;
   }
+  .badge-warning::before { @apply bg-amber-600; }
 
   .badge-danger {
-    @apply badge bg-red-600 text-white;
+    @apply badge bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300;
   }
+  .badge-danger::before { @apply bg-red-600; }
+
+  .badge-info {
+    @apply badge bg-info-100 text-info-600 dark:bg-blue-900/40 dark:text-blue-300;
+  }
+  .badge-info::before { @apply bg-info-600; }
+
+  .badge-neutral {
+    @apply badge bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300;
+  }
+  .badge-neutral::before { @apply bg-neutral-500; }
 
   .section-title {
-    @apply text-2xl font-bold text-slate-900 dark:text-white mb-4;
+    @apply text-2xl font-bold text-slate-900 dark:text-white mb-4 font-serif;
   }
 
   .skip-to-content {
     @apply absolute left-0 top-0 z-50 -translate-y-full px-4 py-2 bg-primary-600 text-white focus-visible:translate-y-0;
-  }
-
-  /* Dark mode improvements for better contrast */
-  .dark .input-field::placeholder {
-    @apply text-slate-400;
   }
 
   .text-muted {
@@ -92,14 +116,9 @@
   }
 }
 
-/* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .animate-fadeIn {

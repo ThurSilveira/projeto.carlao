@@ -137,76 +137,67 @@ private struct MinistroCard: View {
     let onDelete: () -> Void
     let onIndisponibilidades: () -> Void
 
+    private var avatarColor: Color {
+        ministro.ativo ? .appPrimary : .statusNeutral
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
+        HStack(alignment: .center, spacing: 12) {
+            AvatarView(nome: ministro.nome, size: 44, color: avatarColor)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 8) {
                     Text(ministro.nome)
-                        .font(.appHeadline)
-                    Text(ministro.email)
+                        .font(.appTitleMedium)
+                    if !ministro.ativo {
+                        StatusBadge(text: "Inativo", variant: .neutral)
+                    }
+                }
+                Text(ministro.funcaoLabel)
+                    .font(.appBodySmall)
+                    .foregroundStyle(Color.secondary)
+                if let telefone = ministro.telefone, !telefone.isEmpty {
+                    Label(telefone, systemImage: "phone")
                         .font(.appCaption)
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-                HStack(spacing: 0) {
-                    Button(action: onIndisponibilidades) {
-                        Image(systemName: "calendar.badge.exclamationmark")
-                            .foregroundColor(.appPrimary)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(8)
-
-                    Button(action: onEdit) {
-                        Image(systemName: "pencil")
-                            .foregroundColor(.primary)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(8)
-
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.statusError)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(8)
+                        .foregroundStyle(Color.secondary)
+                        .labelStyle(.titleAndIcon)
                 }
             }
 
-            HStack(spacing: 6) {
-                StatusBadge(
-                    text: ministro.ativo ? "Ativo" : "Inativo",
-                    variant: ministro.ativo ? .success : .neutral
-                )
-                StatusBadge(text: ministro.funcaoLabel, variant: .info)
-            }
+            Spacer()
 
-            if let telefone = ministro.telefone, !telefone.isEmpty {
-                Text(telefone)
-                    .font(.appCaption)
-                    .foregroundColor(.secondary)
-            }
-
-            if let agendadas = ministro.escalasAgendadas, !agendadas.isEmpty {
-                Divider()
-                Text("Escalas agendadas:")
-                    .font(.appLabel)
-                    .foregroundColor(.secondary)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(agendadas, id: \.self) { dateStr in
-                            let label = DateUtils.parseDate(dateStr).map { DateUtils.formatDate($0) } ?? dateStr
-                            Text(label)
-                                .font(.appLabel)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Color(.tertiarySystemBackground), in: Capsule())
-                        }
-                    }
-                }
+            HStack(spacing: 0) {
+                SmallIconButton(systemName: "calendar.badge.exclamationmark", color: .appSecondary, action: onIndisponibilidades)
+                SmallIconButton(systemName: "pencil", color: Color(.secondaryLabel), action: onEdit)
+                SmallIconButton(systemName: "trash", color: .statusError, action: onDelete)
             }
         }
-        .padding()
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .background(Color(.secondarySystemBackground), in: RoundedCornerShape(radius: 14))
+    }
+}
+
+private struct SmallIconButton: View {
+    let systemName: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 14))
+                .foregroundStyle(color)
+                .frame(width: 34, height: 34)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct RoundedCornerShape: Shape {
+    let radius: CGFloat
+    func path(in rect: CGRect) -> Path {
+        Path(UIBezierPath(roundedRect: rect, cornerRadius: radius).cgPath)
     }
 }
 

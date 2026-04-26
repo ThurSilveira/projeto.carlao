@@ -10,6 +10,7 @@ interface EscalaRepository {
     suspend fun create(eventoId: Long, observacao: String?): ApiResult<Escala>
     suspend fun gerar(eventoId: Long): ApiResult<Escala>
     suspend fun aprovar(id: Long): ApiResult<Escala>
+    suspend fun confirmar(id: Long): ApiResult<Escala>
     suspend fun cancelar(id: Long): ApiResult<Escala>
     suspend fun delete(id: Long): ApiResult<Unit>
 }

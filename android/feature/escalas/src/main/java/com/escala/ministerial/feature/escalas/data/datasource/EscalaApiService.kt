@@ -24,6 +24,9 @@ interface EscalaApiService {
     @PUT("escalas/{id}/aprovar")
     suspend fun aprovar(@Path("id") id: Long): EscalaDto
 
+    @PUT("escalas/{id}/confirmar")
+    suspend fun confirmar(@Path("id") id: Long): EscalaDto
+
     @PUT("escalas/{id}/cancelar")
     suspend fun cancelar(@Path("id") id: Long): EscalaDto
 

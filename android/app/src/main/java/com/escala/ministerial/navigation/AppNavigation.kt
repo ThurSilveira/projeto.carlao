@@ -49,18 +49,34 @@ private val navItems = listOf(
     NavItem("Auditoria", Icons.Default.Assessment, Route.Auditoria),
 )
 
+private val routeToLabel = mapOf(
+    "dashboard" to Route.Dashboard,
+    "ministros" to Route.Ministros,
+    "eventos"   to Route.Eventos,
+    "escalas"   to Route.Escalas,
+    "feedback"  to Route.Feedback,
+    "auditoria" to Route.Auditoria,
+)
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    fun navigateTo(route: Route) {
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                tonalElevation = 8.dp,
+                tonalElevation = 0.dp,
             ) {
                 navItems.forEach { item ->
                     val isSelected = currentDestination?.hierarchy?.any {
@@ -68,38 +84,16 @@ fun AppNavigation() {
                     } == true
 
                     NavigationBarItem(
-                        icon = {
-                            Icon(
-                                item.icon,
-                                contentDescription = item.label,
-                                tint = if (isSelected) MaterialTheme.colorScheme.primary
-                                      else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        label = {
-                            Text(
-                                item.label,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary
-                                       else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
+                        icon = { Icon(item.icon, contentDescription = item.label) },
+                        label = { Text(item.label, style = MaterialTheme.typography.labelSmall) },
                         selected = isSelected,
-                        onClick = {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
+                        onClick = { navigateTo(item.route) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
                             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                         ),
                     )
                 }
@@ -109,14 +103,20 @@ fun AppNavigation() {
         NavHost(
             navController = navController,
             startDestination = Route.Dashboard,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
         ) {
-            composable<Route.Dashboard> { DashboardScreen() }
-            composable<Route.Ministros> { MinistrosScreen() }
-            composable<Route.Eventos> { EventosScreen() }
-            composable<Route.Escalas> { EscalasScreen() }
-            composable<Route.Feedback> { FeedbackScreen() }
-            composable<Route.Auditoria> { AuditoriaScreen() }
+            composable<Route.Dashboard> {
+                DashboardScreen(
+                    onNavigate = { key ->
+                        routeToLabel[key]?.let { navigateTo(it) }
+                    },
+                )
+            }
+            composable<Route.Ministros>  { MinistrosScreen() }
+            composable<Route.Eventos>    { EventosScreen() }
+            composable<Route.Escalas>    { EscalasScreen() }
+            composable<Route.Feedback>   { FeedbackScreen() }
+            composable<Route.Auditoria>  { AuditoriaScreen() }
         }
     }
 }

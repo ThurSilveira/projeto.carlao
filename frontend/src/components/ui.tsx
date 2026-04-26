@@ -48,29 +48,34 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ className, children, title }) => (
-  <div className={clsx('bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200 p-6', className)}>
-    {title && <h3 className="text-lg font-semibold mb-4 text-slate-900">{title}</h3>}
+  <div className={clsx('bg-white dark:bg-neutral-850 rounded-xl shadow-sm border border-slate-200 dark:border-neutral-700 p-6', className)}>
+    {title && <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">{title}</h3>}
     {children}
   </div>
 );
 
-// Badge Component
+// Badge Component — pill with colored dot
 interface BadgeProps {
-  variant?: 'primary' | 'success' | 'warning' | 'danger';
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral';
   children: React.ReactNode;
   className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({ variant = 'primary', children, className }) => {
-  const variantStyles = {
-    primary: 'bg-primary-100 text-primary-800',
-    success: 'bg-green-100 text-green-800',
-    warning: 'bg-yellow-100 text-yellow-800',
-    danger: 'bg-red-100 text-red-800',
-  };
+const badgeVariantStyles: Record<NonNullable<BadgeProps['variant']>, { pill: string; dot: string }> = {
+  primary:   { pill: 'bg-primary-100 text-primary-600 dark:bg-primary-900/60 dark:text-primary-200',       dot: 'bg-primary-600' },
+  secondary: { pill: 'bg-secondary-100 text-secondary-600 dark:bg-secondary-800 dark:text-secondary-300',  dot: 'bg-secondary-600' },
+  success:   { pill: 'bg-success-100 text-success-600 dark:bg-green-900/40 dark:text-green-300',           dot: 'bg-success-600' },
+  warning:   { pill: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300',               dot: 'bg-amber-600' },
+  danger:    { pill: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',                       dot: 'bg-red-600' },
+  info:      { pill: 'bg-info-100 text-info-600 dark:bg-blue-900/40 dark:text-blue-300',                   dot: 'bg-info-600' },
+  neutral:   { pill: 'bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300',          dot: 'bg-neutral-500' },
+};
 
+export const Badge: React.FC<BadgeProps> = ({ variant = 'primary', children, className }) => {
+  const { pill, dot } = badgeVariantStyles[variant];
   return (
-    <span className={clsx('inline-flex items-center px-2 py-1 rounded-full text-xs font-medium', variantStyles[variant], className)}>
+    <span className={clsx('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold', pill, className)}>
+      <span className={clsx('w-1.5 h-1.5 rounded-full flex-shrink-0', dot)} />
       {children}
     </span>
   );
