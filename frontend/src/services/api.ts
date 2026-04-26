@@ -5,12 +5,24 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 });
+
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+      err.message = 'O servidor está iniciando, aguarde alguns segundos e tente novamente.';
+    } else if (!err.response) {
+      err.message = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+    }
+    return Promise.reject(err);
+  },
+);
 
 // ── Ministros ─────────────────────────────────────────────────────────────────
 

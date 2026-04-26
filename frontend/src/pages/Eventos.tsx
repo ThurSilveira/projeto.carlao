@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { EventoService } from '@/services/api';
-import api from '@/services/api';
 import { Card, Button, Input, Badge, Spinner, Modal, Select, Alert } from '@/components/ui';
 import { Evento, TipoEvento } from '@/types';
-import { CalendarPlus, Trash2, Edit2, FlaskConical } from 'lucide-react';
+import { CalendarPlus, Trash2, Edit2 } from 'lucide-react';
+import { formatDate } from '@/utils/date';
 
 export const EventosPage: React.FC = () => {
   const [eventos, setEventos] = useState<Evento[]>([]);
@@ -87,15 +87,6 @@ export const EventosPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSeedTestData = async () => {
-    try {
-      const res = await api.post('/seed');
-      showAlert(res.data.mensagem || '+10 ministros e +10 eventos adicionados!', 'success');
-      await loadEventos();
-    } catch {
-      showAlert('Erro ao carregar dados de teste (backend com profile local?)', 'error');
-    }
-  };
 
   const resetForm = () => {
     setEditingEvento(null);
@@ -121,10 +112,6 @@ export const EventosPage: React.FC = () => {
           <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie eventos e missas da paróquia</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={handleSeedTestData}>
-            <FlaskConical size={18} className="mr-2" />
-            Dados Teste
-          </Button>
           <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
             <CalendarPlus size={18} className="mr-2" />
             Novo Evento
@@ -165,7 +152,7 @@ export const EventosPage: React.FC = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-3">
                     <div>
                       <p className="text-slate-600 dark:text-slate-400">📅 Data</p>
-                      <p className="font-medium text-slate-900 dark:text-white">{new Date(evento.data).toLocaleDateString('pt-BR')}</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{formatDate(evento.data)}</p>
                     </div>
                     <div>
                       <p className="text-slate-600 dark:text-slate-400">🕐 Horário</p>

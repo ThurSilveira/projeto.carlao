@@ -3,6 +3,7 @@ import { FeedbackService } from '@/services/api';
 import { Card, Badge, Spinner, Button, Modal, Select, Alert } from '@/components/ui';
 import { Feedback, StatusFeedback } from '@/types';
 import { Send } from 'lucide-react';
+import { formatDate } from '@/utils/date';
 
 export const FeedbackPage: React.FC = () => {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
@@ -115,7 +116,7 @@ export const FeedbackPage: React.FC = () => {
                   </div>
                   <p className="font-semibold text-slate-900 dark:text-white">{feedback.comentario}</p>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-                    📅 {new Date(feedback.dataEnvio).toLocaleDateString('pt-BR')}
+                    📅 {formatDate(feedback.dataEnvio)}
                   </p>
                 </div>
                 {feedback.status === StatusFeedback.PENDENTE && (

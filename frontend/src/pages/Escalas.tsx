@@ -3,6 +3,7 @@ import { EscalaService, EventoService } from '@/services/api';
 import { Card, Badge, Spinner, Button, Modal, Select, Alert } from '@/components/ui';
 import { Escala, EscalaMinistro, Evento, StatusEscala } from '@/types';
 import { CheckCircle, XCircle, Zap, Users, Trash2 } from 'lucide-react';
+import { formatDate } from '@/utils/date';
 
 export const EscalasPage: React.FC = () => {
   const [escalas, setEscalas] = useState<Escala[]>([]);
@@ -177,7 +178,7 @@ export const EscalasPage: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                   <div>
                     <p className="text-slate-500 dark:text-slate-400">📅 Data</p>
-                    <p className="font-medium">{evento?.data ? new Date(evento.data).toLocaleDateString('pt-BR') : '—'}</p>
+                    <p className="font-medium">{evento?.data ? formatDate(evento.data) : '—'}</p>
                   </div>
                   <div>
                     <p className="text-slate-500 dark:text-slate-400">🕐 Horário</p>
@@ -257,7 +258,7 @@ export const EscalasPage: React.FC = () => {
               { value: '', label: 'Selecione um evento...' },
               ...eventosDisponiveis.map((e) => ({
                 value: String(e.id),
-                label: `${e.nome} — ${e.data ? new Date(e.data).toLocaleDateString('pt-BR') : ''} ${e.horario}`,
+                label: `${e.nome} — ${e.data ? formatDate(e.data) : ''} ${e.horario}`,
               })),
             ]}
             onChange={(e) => setGerarEventoId(Number(e.target.value))}

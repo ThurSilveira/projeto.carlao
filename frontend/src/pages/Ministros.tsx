@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MinistroService, IndisponibilidadeService } from '@/services/api';
-import api from '@/services/api';
 import { Card, Button, Input, Badge, Spinner, Modal, Select, Alert } from '@/components/ui';
 import { Ministro, FuncaoMinistro, TipoEvento, Indisponibilidade } from '@/types';
-import { Plus, Trash2, Edit2, FlaskConical, Calendar } from 'lucide-react';
+import { Plus, Trash2, Edit2, Calendar } from 'lucide-react';
+import { formatDate } from '@/utils/date';
 
 const emptyIndisp = (): Partial<Indisponibilidade> => ({
   data: '', horarioInicio: '', horarioFim: '', motivo: '',
@@ -99,16 +99,6 @@ export const MinistrosPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSeedTestData = async () => {
-    try {
-      const res = await api.post('/seed');
-      showAlert(res.data.mensagem || '+10 ministros e +10 eventos adicionados!', 'success');
-      await loadMinistros();
-    } catch {
-      showAlert('Erro ao carregar dados de teste (backend com profile local?)', 'error');
-    }
-  };
-
   const resetForm = () => {
     setEditingMinistro(null);
     setFormData({
@@ -190,10 +180,6 @@ export const MinistrosPage: React.FC = () => {
           <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie e acompanhe ministros da paróquia</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={handleSeedTestData}>
-            <FlaskConical size={18} className="mr-2" />
-            Dados Teste
-          </Button>
           <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
             <Plus size={18} className="mr-2" />
             Novo Ministro
@@ -276,7 +262,7 @@ export const MinistrosPage: React.FC = () => {
                 <p className="text-slate-600 dark:text-slate-400">📧 {ministro.email}</p>
                 <p className="text-slate-600 dark:text-slate-400">📱 {ministro.telefone}</p>
                 {ministro.dataNascimento && (
-                  <p className="text-slate-600 dark:text-slate-400">🎂 {new Date(ministro.dataNascimento).toLocaleDateString('pt-BR')}</p>
+                  <p className="text-slate-600 dark:text-slate-400">🎂 {formatDate(ministro.dataNascimento)}</p>
                 )}
                 {ministro.observacoes && <p className="text-slate-600 dark:text-slate-400">📝 {ministro.observacoes}</p>}
               </div>
@@ -287,7 +273,7 @@ export const MinistrosPage: React.FC = () => {
                   <div className="flex flex-wrap gap-1">
                     {ministro.escalasAgendadas.map((d, i) => (
                       <span key={i} className="text-xs px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full">
-                        {new Date(d).toLocaleDateString('pt-BR')}
+                        {formatDate(d)}
                       </span>
                     ))}
                   </div>
@@ -421,7 +407,7 @@ export const MinistrosPage: React.FC = () => {
                   <li key={ind.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                     <div className="text-sm">
                       <p className="font-medium text-slate-900 dark:text-white">
-                        {new Date(ind.data).toLocaleDateString('pt-BR')}
+                        {formatDate(ind.data)}
                         {ind.horarioInicio && ` · ${ind.horarioInicio}–${ind.horarioFim}`}
                       </p>
                       {ind.motivo && <p className="text-slate-500 dark:text-slate-400">{ind.motivo}</p>}

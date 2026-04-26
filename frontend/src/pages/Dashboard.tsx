@@ -4,6 +4,7 @@ import { Card, Badge, Spinner } from '@/components/ui';
 import { Ministro, Evento, Escala, Feedback } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/utils/date';
 import { Users, Calendar, Clipboard, MessageSquare, TrendingUp } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
@@ -116,7 +117,7 @@ export const Dashboard: React.FC = () => {
                       📍 {evento.local} • 🕐 {evento.horario}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                      {format(new Date(evento.data), 'dd MMMM yyyy', { locale: ptBR })}
+                      {format(parseLocalDate(evento.data), 'dd MMMM yyyy', { locale: ptBR })}
                     </p>
                   </div>
                   <Badge variant="primary">{evento.tipoEvento.replace(/_/g, ' ')}</Badge>
