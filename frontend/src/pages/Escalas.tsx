@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EscalaService, EventoService } from '@/services/api';
 import { Card, Badge, Spinner, Button, Modal, Select, Alert } from '@/components/ui';
-import { Evento, StatusEscala } from '@/types';
+import { Escala, EscalaMinistro, Evento, StatusEscala } from '@/types';
 import { CheckCircle, XCircle, Zap, Users, Trash2 } from 'lucide-react';
 
 export const EscalasPage: React.FC = () => {
@@ -200,7 +200,7 @@ export const EscalasPage: React.FC = () => {
                       <Users size={14} /> Ministros escalados
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {escala.escalaMinistros.map((em, idx) => (
+                      {escala.escalaMinistros.map((em: EscalaMinistro, idx: number) => (
                         <span
                           key={em.id ?? idx}
                           className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
@@ -284,7 +284,7 @@ export const EscalasPage: React.FC = () => {
                 <Users size={16} /> Ministros selecionados ({escalasGerada.escalaMinistros.length})
               </p>
               <ul className="space-y-2">
-                {escalasGerada.escalaMinistros.map((em, idx) => (
+                {escalasGerada.escalaMinistros.map((em: EscalaMinistro, idx: number) => (
                   <li
                     key={em.id ?? idx}
                     className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800"
