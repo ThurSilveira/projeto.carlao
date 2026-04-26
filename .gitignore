@@ -152,9 +152,5 @@ private.key
 *.key
 
 # Project-specific
-DEPLOY.md
-generate_secret.sh
-database-schema-postgresql.sql
-database-seed-postegrsql.sql
 .claude/*
 RODAR_LOCAL.txt
