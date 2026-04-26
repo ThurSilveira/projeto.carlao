@@ -19,7 +19,6 @@ pj_bc/
 │
 ├── .env            # Variáveis de ambiente locais e credenciais (gitignored)
 ├── .gitignore
-└── .github/        # Workflows de CI/CD
 ```
 
 ---
