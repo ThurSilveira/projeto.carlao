@@ -1,11 +1,7 @@
 import Foundation
 
 enum APIEndpoints {
-    #if DEBUG
-    static let baseURL = "http://localhost:8080/api"
-    #else
     static let baseURL = "https://escala-ministerial-api.onrender.com/api"
-    #endif
 
     // Ministros
     static let ministros = "\(baseURL)/ministros"
