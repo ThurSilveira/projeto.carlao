@@ -11,11 +11,18 @@ android {
         applicationId = "com.escala.ministerial"
         versionCode = 1
         versionName = "1.0.0"
-
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/api/\"")
     }
     buildFeatures {
         buildConfig = true
+    }
+    buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/api/\"")
+        }
+        release {
+            buildConfigField("String", "BASE_URL", "\"https://escala-ministerial-api.onrender.com/api/\"")
+            isMinifyEnabled = false
+        }
     }
 }
 

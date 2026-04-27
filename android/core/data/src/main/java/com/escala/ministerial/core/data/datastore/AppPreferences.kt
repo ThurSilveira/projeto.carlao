@@ -25,7 +25,7 @@ class AppPreferences @Inject constructor(
     }
 
     val serverUrl: Flow<String> = context.dataStore.data.map { prefs ->
-        prefs[KEY_SERVER_URL] ?: "http://10.0.2.2:8080/api/"
+        prefs[KEY_SERVER_URL] ?: "https://escala-ministerial-api.onrender.com/api/"
     }
 
     val darkMode: Flow<Boolean> = context.dataStore.data.map { prefs ->
