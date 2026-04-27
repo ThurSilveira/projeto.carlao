@@ -1,5 +1,6 @@
 package com.escala.ministerial.navigation
 
+import android.content.Context
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
@@ -8,6 +9,7 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -15,10 +17,15 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -33,6 +40,9 @@ import com.escala.ministerial.feature.escalas.presentation.EscalasScreen
 import com.escala.ministerial.feature.eventos.presentation.EventosScreen
 import com.escala.ministerial.feature.feedback.presentation.FeedbackScreen
 import com.escala.ministerial.feature.ministros.presentation.MinistrosScreen
+
+private const val PREF_FILE = "app_prefs"
+private const val PREF_NOTICE = "render_cold_start_notice_seen"
 
 private data class NavItem(
     val label: String,
@@ -59,6 +69,32 @@ private val routeToLabel = mapOf(
 )
 
 @Composable
+private fun RenderNoticeDialog() {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+    val visible = rememberSaveable { mutableStateOf(!prefs.getBoolean(PREF_NOTICE, false)) }
+    if (!visible.value) return
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("⏳ Aviso sobre o servidor") },
+        text = {
+            Text(
+                "O servidor está hospedado no plano gratuito do Render, que hiberna após " +
+                "15 minutos de inatividade. Na primeira requisição após o sono, pode levar " +
+                "até 50 segundos para responder — depois fica rápido.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                prefs.edit().putBoolean(PREF_NOTICE, true).apply()
+                visible.value = false
+            }) { Text("Entendido") }
+        },
+    )
+}
+
+@Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -71,6 +107,8 @@ fun AppNavigation() {
             restoreState = true
         }
     }
+
+    RenderNoticeDialog()
 
     Scaffold(
         bottomBar = {

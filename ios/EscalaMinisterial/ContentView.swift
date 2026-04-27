@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab: Tab = .dashboard
+    @AppStorage("render_cold_start_notice_seen") private var noticeSeen = false
+    @State private var showNotice = false
 
     enum Tab {
         case dashboard, ministros, eventos, escalas, feedback, auditoria
@@ -34,6 +36,16 @@ struct ContentView: View {
                 .tag(Tab.auditoria)
         }
         .tint(.appPrimary)
+        .onAppear { if !noticeSeen { showNotice = true } }
+        .alert("⏳ Aviso sobre o servidor", isPresented: $showNotice) {
+            Button("Entendido") { noticeSeen = true }
+        } message: {
+            Text(
+                "O servidor está hospedado no plano gratuito do Render, que hiberna após " +
+                "15 minutos de inatividade. Na primeira requisição após o sono, pode levar " +
+                "até 50 segundos para responder — depois fica rápido."
+            )
+        }
     }
 }
 

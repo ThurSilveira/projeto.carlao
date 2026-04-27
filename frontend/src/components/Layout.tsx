@@ -3,6 +3,28 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Moon, Sun } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from '@/hooks/useTheme';
+import { Modal, Button } from '@/components/ui';
+
+const NOTICE_KEY = 'render_cold_start_notice_seen';
+
+const RenderNotice: React.FC = () => {
+  const [open, setOpen] = useState(() => !localStorage.getItem(NOTICE_KEY));
+  const confirm = () => { localStorage.setItem(NOTICE_KEY, '1'); setOpen(false); };
+  return (
+    <Modal
+      isOpen={open}
+      title="⏳ Aviso sobre o servidor"
+      onClose={confirm}
+      actions={<Button onClick={confirm}>Entendido</Button>}
+    >
+      <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">
+        O servidor está hospedado no plano gratuito do <strong>Render</strong>, que hiberna
+        após 15 minutos de inatividade. Na primeira requisição após o sono, pode levar
+        até <strong>50 segundos</strong> para responder — depois disso fica rápido.
+      </p>
+    </Modal>
+  );
+};
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,6 +48,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900 transition-colors duration-300">
+      <RenderNotice />
       {/* Header */}
       <header className="bg-white dark:bg-neutral-850 shadow-sm border-b border-slate-200 dark:border-neutral-700 sticky top-0 z-40 transition-colors duration-300">
         <div className="px-4 py-4 flex items-center justify-between">
