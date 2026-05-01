@@ -40,6 +40,9 @@ final class MinistroService {
     // MARK: - Seed
 
     func seedTestData() async throws {
+        guard APIEndpoints.isSeedEnabled else {
+            throw NetworkError.httpError(statusCode: 404, body: "Endpoint de seed indisponível em produção")
+        }
         try await client.postEmpty(APIEndpoints.seed)
     }
 }

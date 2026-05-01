@@ -73,8 +73,10 @@ struct MinistrosView: View {
             .navigationTitle("Ministros")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Dados Teste") { Task { await viewModel.seedTestData() } }
-                        .font(.appCaption)
+                    if APIEndpoints.isSeedEnabled {
+                        Button("Dados Teste") { Task { await viewModel.seedTestData() } }
+                            .font(.appCaption)
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { editingMinistro = nil; showForm = true } label: {

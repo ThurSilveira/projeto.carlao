@@ -31,12 +31,18 @@ def obter(db: Session, evento_id: int) -> EventoOut | None:
     return _to_out(e) if e else None
 
 
+def _evento_detalhes(evento: Evento) -> str:
+    horario = evento.horario or "horário não informado"
+    local = evento.local or "local não informado"
+    return f"{evento.nome} — {evento.data} {horario} @ {local}"
+
+
 def criar(db: Session, data: EventoIn) -> EventoOut:
     evento = Evento()
     _preencher(evento, data)
     db.add(evento)
     db.flush()
-    auditoria_service.registrar(db, "Evento", "CRIADO", None, evento.nome)
+    auditoria_service.registrar(db, "Evento", "CRIADO", None, f"CRIADO — {_evento_detalhes(evento)}")
     db.commit()
     db.refresh(evento)
     return _to_out(evento)
@@ -48,7 +54,7 @@ def atualizar(db: Session, evento_id: int, data: EventoIn) -> EventoOut | None:
         return None
     prev = evento.nome
     _preencher(evento, data)
-    auditoria_service.registrar(db, "Evento", "ATUALIZADO", prev, evento.nome)
+    auditoria_service.registrar(db, "Evento", "ATUALIZADO", prev, f"ATUALIZADO — {_evento_detalhes(evento)}")
     db.commit()
     db.refresh(evento)
     return _to_out(evento)
@@ -59,7 +65,7 @@ def cancelar(db: Session, evento_id: int) -> EventoOut | None:
     if not evento:
         return None
     evento.cancelado = True
-    auditoria_service.registrar(db, "Evento", "CANCELADO", "ATIVO", "CANCELADO")
+    auditoria_service.registrar(db, "Evento", "CANCELADO", "ATIVO", f"CANCELADO — {_evento_detalhes(evento)}")
     db.commit()
     db.refresh(evento)
     return _to_out(evento)
@@ -68,6 +74,6 @@ def cancelar(db: Session, evento_id: int) -> EventoOut | None:
 def deletar(db: Session, evento_id: int) -> None:
     evento = db.get(Evento, evento_id)
     if evento:
-        auditoria_service.registrar(db, "Evento", "DELETADO", evento.nome, None)
+        auditoria_service.registrar(db, "Evento", "DELETADO", evento.nome, f"DELETADO — {_evento_detalhes(evento)}")
         db.delete(evento)
         db.commit()

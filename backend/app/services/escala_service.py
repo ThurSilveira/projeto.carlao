@@ -35,6 +35,14 @@ def _to_out(e: Escala) -> EscalaOut:
     )
 
 
+def _escala_detalhes(escala: Escala) -> str:
+    evento = escala.evento
+    if not evento:
+        return f"Escala {escala.id} sem evento associado"
+    horario = evento.horario or "horário não informado"
+    return f"{evento.nome} — {evento.data} {horario} @ {evento.local or 'local não informado'}"
+
+
 def _filtrar_disponiveis(
     db: Session,
     candidatos: list[Ministro],
@@ -145,7 +153,7 @@ def criar(db: Session, data: EscalaIn) -> EscalaOut:
     escala = Escala(evento_id=data.evento_id, observacao=data.observacao, status="PROPOSTA")
     db.add(escala)
     db.flush()
-    auditoria_service.registrar(db, "Escala", "CRIADO", None, "PROPOSTA")
+    auditoria_service.registrar(db, "Escala", "CRIADO", None, f"CRIADO — {_escala_detalhes(escala)}")
     db.commit()
     db.refresh(escala)
     return _to_out(escala)
@@ -202,7 +210,13 @@ def substituir(db: Session, escala_id: int, ministro_id: int, substituto_id: int
     novo_em = EscalaMinistro(escala_id=escala_id, ministro_id=novo.id)
     db.add(novo_em)
 
-    auditoria_service.registrar(db, "Escala", "SUBSTITUIDO", str(ministro_id), str(novo.id))
+    auditoria_service.registrar(
+        db,
+        "Escala",
+        "SUBSTITUIDO",
+        str(ministro_id),
+        f"SUBSTITUÍDO {antigo.nome if antigo else ministro_id} → {novo.nome} — {_escala_detalhes(escala)}",
+    )
     db.commit()
     db.refresh(escala)
     return _to_out(escala)
@@ -441,7 +455,7 @@ def aprovar(db: Session, escala_id: int) -> EscalaOut | None:
     escala.status = "APROVADA"
     if escala.evento:
         escala.evento.cancelado = True
-    auditoria_service.registrar(db, "Escala", "APROVADO", prev, "APROVADA")
+    auditoria_service.registrar(db, "Escala", "APROVADO", prev, f"APROVADA — {_escala_detalhes(escala)}")
     db.commit()
     db.refresh(escala)
     return _to_out(escala)
@@ -453,7 +467,7 @@ def cancelar(db: Session, escala_id: int) -> EscalaOut | None:
         return None
     prev = escala.status
     escala.status = "CANCELADA"
-    auditoria_service.registrar(db, "Escala", "CANCELADO", prev, "CANCELADA")
+    auditoria_service.registrar(db, "Escala", "CANCELADO", prev, f"CANCELADA — {_escala_detalhes(escala)}")
     db.commit()
     db.refresh(escala)
     return _to_out(escala)
@@ -462,6 +476,6 @@ def cancelar(db: Session, escala_id: int) -> EscalaOut | None:
 def deletar(db: Session, escala_id: int) -> None:
     escala = db.get(Escala, escala_id)
     if escala:
-        auditoria_service.registrar(db, "Escala", "DELETADO", escala.status, None)
+        auditoria_service.registrar(db, "Escala", "DELETADO", escala.status, f"DELETADA — {_escala_detalhes(escala)}")
         db.delete(escala)
         db.commit()

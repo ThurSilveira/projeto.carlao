@@ -1,6 +1,8 @@
 # Escala Ministerial
 
-Sistema de gestão de escalas de ministros da eucaristia — backend Spring Boot, frontend React e apps mobile Android/iOS.
+Sistema de gestão de escalas de ministros da eucaristia — backend FastAPI (Python), frontend React e apps mobile Android/iOS.
+
+**Status de produção:** ✅ Backend deployed em Render, mobile clients sincronizados com API REST.
 
 ---
 
@@ -8,16 +10,17 @@ Sistema de gestão de escalas de ministros da eucaristia — backend Spring Boot
 
 ```
 pj_bc/
-├── backend/        # API REST — Spring Boot 3 + Java 17 + PostgreSQL
-├── frontend/       # Web — React + Vite + TypeScript + Tailwind CSS
-├── android/        # App Android — Kotlin + Jetpack Compose (multi-módulo)
-├── ios/            # App iOS — Swift + SwiftUI
+├── backend/        # API REST — FastAPI 0.104+ · Python 3.12 · SQLAlchemy · PostgreSQL
+├── frontend/       # Web — React 18 · Vite · TypeScript · Tailwind CSS
+├── android/        # App Android — Kotlin · Compose · Hilt · Retrofit (multi-módulo)
+├── ios/            # App iOS — Swift · SwiftUI · URLSession
 │
-├── render.yaml     # Blueprint do Render para deploy do backend em 1 clique
-├── Procfile        # Comando de start legado (Heroku-style)
-├── RODAR_LOCAL.txt # Comandos prontos para rodar tudo localmente
+├── Dockerfile      # Build multi-stage para deploy no Render
+├── render.yaml     # Blueprint do Render para deploy automático com 1 clique
+├── Procfile        # Comando de start legado (Heroku-style compatibility)
+|
 │
-├── .env            # Variáveis de ambiente locais e credenciais (gitignored)
+├── .env            # Variáveis de ambiente locais (gitignored)
 ├── .gitignore
 ```
 
@@ -25,79 +28,61 @@ pj_bc/
 
 ## Plataformas
 
-| Camada    | Stack principal                               | Deploy         |
-|-----------|-----------------------------------------------|----------------|
-| Backend   | Spring Boot · Maven · JPA · JWT               | Render (free)  |
-| Frontend  | React 18 · Vite · Tailwind · Axios            | Vercel (free)  |
-| Android   | Kotlin · Compose · Hilt · Retrofit            | —              |
-| iOS       | Swift · SwiftUI · URLSession                  | —              |
-| Banco     | PostgreSQL (Render managed)                   | Render (free)  |
+| Camada    | Stack principal                               | URL/Deploy                           |
+|-----------|-----------------------------------------------|--------------------------------------|
+| Backend   | FastAPI · Python 3.12 · SQLAlchemy · Pydantic | https://escala-ministerial-api.onrender.com/api |
+| Frontend  | React 18 · Vite · Tailwind · Axios            | Vercel (free)                       |
+| Android   | Kotlin · Compose · Hilt · Retrofit            | Alvo: backend Render                |
+| iOS       | Swift · SwiftUI · URLSession · Codable        | Alvo: backend Render                |
+| Banco     | PostgreSQL 15+                                | Render managed (free tier)          |
 
----
-
-## Rodando localmente
-
-Veja `RODAR_LOCAL.txt` para os comandos exatos de cada plataforma.
-
-**Resumo rápido:**
-
-```bash
-# Backend (http://localhost:8080)
-cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
-
-# Frontend (http://localhost:5173)
-cd frontend && npm install && npm run dev
-```
-
-Android e iOS: abrir no Android Studio / Xcode respectivamente.
 
 ---
 
 ## Variáveis de ambiente necessárias (backend)
 
-| Variável               | Descrição                              |
-|------------------------|----------------------------------------|
-| `DATABASE_URL`         | JDBC URL do PostgreSQL                 |
-| `DB_USERNAME`          | Usuário do banco                       |
-| `DB_PASSWORD`          | Senha do banco                         |
-| `JWT_SECRET`           | Chave secreta para assinar tokens JWT  |
-| `CORS_ORIGINS`         | Origins permitidos pelo CORS           |
-| `JPA_HIBERNATE_DDL_AUTO` | `update` em prod, `create` local     |
+| Variável               | Descrição                                     | Padrão/Exemplo         |
+|------------------------|-----------------------------------------------|------------------------|
+| `DATABASE_URL`         | PostgreSQL URL (Render normalizará para SQLAlchemy) | `postgres://user:pass@host/db` |
+| `CORS_ORIGINS`         | Origins permitidos (separados por vírgula)    | `*` (local), domínio (prod)        |
+| `ENVIRONMENT`          | `development` ou `production`                 | `production`                       |
+| `PORT`                 | Porta do servidor                             | `8000`                             |
 
-Copie `.env.example` para `.env` e preencha antes de subir.
+Copie `.env.example` para `.env` e preencha localmente. Render injeta as variáveis automaticamente.
 
 ---
 
-## Backend — estrutura detalhada
+## Backend — Estrutura
 
 ```
 backend/
-├── Dockerfile                  # Build multi-stage (Maven → JRE Alpine) para deploy no Render
-├── mvnw / mvnw.cmd             # Maven Wrapper — garante a versão certa do Maven sem instalar nada
-├── pom.xml                     # Dependências e configuração do projeto Maven
+├── Dockerfile                  # Build multi-stage (Python 3.12 slim → runtime)
+├── requirements.txt            # Dependências Python (FastAPI, SQLAlchemy, psycopg2, etc.)
 │
-└── src/
-    ├── main/
-    │   ├── java/com/exemplo/escala/
-    │   │   │
-    │   │   ├── EscalaMinisterialApplication.java   # Ponto de entrada — @SpringBootApplication
-    │   │   │
-    │   │   ├── config/
-    │   │   │   ├── DatabaseUrlNormalizer.java       # Converte DATABASE_URL do Render para formato JDBC
-    │   │   │   ├── GlobalExceptionHandler.java      # Trata exceções globais e retorna JSON padronizado
-    │   │   │   ├── LocalDataSeeder.java             # Popula banco com dados de teste (@Profile("local") only)
-    │   │   │   ├── SecurityConfig.java              # Configura Spring Security: rotas públicas, JWT filter
-    │   │   │   └── WebConfig.java                  # Configura CORS (origens permitidas via env var)
-    │   │   │
-    │   │   ├── controller/                          # Recebem requisições HTTP e delegam para os services
-    │   │   │   ├── MinistroController.java          # CRUD de ministros + ativar/desativar
-    │   │   │   ├── EventoController.java            # CRUD de eventos + cancelar
-    │   │   │   ├── EscalaController.java            # Gerar/aprovar/cancelar/deletar escalas
-    │   │   │   ├── FeedbackController.java          # Listar feedbacks + responder
-    │   │   │   ├── IndisponibilidadeController.java # Registrar/remover indisponibilidades de ministros
-    │   │   │   ├── LogAuditoriaController.java      # Consultar histórico de ações (somente leitura)
-    │   │   │   ├── HealthController.java            # GET /api/public/health — usado pelo Render p/ healthcheck
-    │   │   │   └── LocalSeedController.java         # Endpoints de seed (@Profile("local") — não existe em prod)
+└── app/
+    ├── main.py                 # Ponto de entrada FastAPI, rotas, CORS, lifespan
+    ├── database.py             # Engine SQLAlchemy, normalização de DATABASE_URL do Render
+    ├── models.py               # ORM models (Ministro, Evento, Escala, etc.)
+    ├── schemas.py              # Pydantic schemas (request/response, validação, camelCase)
+    │
+    ├── routers/
+    │   ├── health.py           # GET /api/public/health — healthcheck Render
+    │   ├── ministros.py        # CRUD ministros + indisponibilidades
+    │   ├── eventos.py          # CRUD eventos + cancelar
+    │   ├── escalas.py          # Gerar/aprovar/cancelar escalas
+    │   ├── feedbacks.py        # Listar/responder feedbacks
+    │   ├── auditoria.py        # Histórico de ações (audit log)
+    │   ├── indisponibilidades.py # Gerenciar indisponibilidades de ministros
+    │   └── seed.py             # Endpoints de seed (@ENVIRONMENT=development only)
+    │
+    ├── services/
+    │   ├── ministro_service.py      # Lógica de negócio — ministros
+    │   ├── evento_service.py        # Lógica de negócio — eventos (com audit)
+    │   ├── escala_service.py        # Lógica de negócio — escalas (com audit)
+    │   ├── auditoria_service.py     # Listar/criar audit logs
+    │   └── indisponibilidade_service.py # Lógica de indisponibilidades
+    │
+    └── seed.py                 # Dados de teste para populate inicial
     │   │   │
     │   │   ├── service/                             # Regras de negócio
     │   │   │   ├── MinistroService.java             # Valida duplicatas, ativa/desativa ministros

@@ -2,6 +2,13 @@ import Foundation
 
 enum APIEndpoints {
     static let baseURL = "https://escala-ministerial-api.onrender.com/api"
+    static let isSeedEnabled: Bool = {
+        #if DEBUG
+        return true
+        #else
+        return false
+        #endif
+    }()
 
     // Ministros
     static let ministros = "\(baseURL)/ministros"
@@ -29,6 +36,6 @@ enum APIEndpoints {
     // Auditoria
     static let auditoria = "\(baseURL)/auditoria"
 
-    // Seed
+    // Seed (development only)
     static let seed = "\(baseURL)/seed"
 }

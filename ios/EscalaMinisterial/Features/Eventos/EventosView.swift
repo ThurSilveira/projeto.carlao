@@ -90,8 +90,10 @@ struct EventosView: View {
             .navigationTitle("Eventos")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Dados Teste") { Task { await viewModel.seedTestData() } }
-                        .font(.appCaption)
+                    if APIEndpoints.isSeedEnabled {
+                        Button("Dados Teste") { Task { await viewModel.seedTestData() } }
+                            .font(.appCaption)
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { editingEvento = nil; showForm = true } label: {

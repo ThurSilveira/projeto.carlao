@@ -1,8 +1,31 @@
 from __future__ import annotations
-from datetime import date, datetime
+from datetime import date, datetime, time as time_obj
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from pydantic.alias_generators import to_camel
+
+
+def _normalize_time(value: str | None) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, time_obj):
+        return value.strftime("%H:%M")
+
+    raw = str(value).strip()
+    if not raw:
+        return None
+
+    normalized = raw.replace(".", ":").replace(",", ":").replace("h", ":").replace("H", ":").strip()
+    if len(normalized) == 4 and normalized.isdigit():
+        normalized = f"{normalized[:2]}:{normalized[2:]}"
+
+    for fmt in ("%H:%M", "%H:%M:%S"):
+        try:
+            return datetime.strptime(normalized, fmt).time().strftime("%H:%M")
+        except ValueError:
+            continue
+
+    raise ValueError(f"Horário inválido: {value}")
 
 
 class BaseSchema(BaseModel):
@@ -20,6 +43,10 @@ class IndisponibilidadeIn(BaseSchema):
     horario_inicio: Optional[str] = None
     horario_fim: Optional[str] = None
     motivo: Optional[str] = None
+
+    @field_validator("horario_inicio", "horario_fim", mode="before")
+    def normalize_horario(cls, value):
+        return _normalize_time(value)
 
 
 class IndisponibilidadeOut(BaseSchema):
@@ -74,6 +101,10 @@ class EventoIn(BaseSchema):
     max_ministros: Optional[int] = 6
     local: Optional[str] = None
     cancelado: bool = False
+
+    @field_validator("horario", mode="before")
+    def normalize_horario(cls, value):
+        return _normalize_time(value)
 
 
 class EventoOut(BaseSchema):
