@@ -159,6 +159,32 @@ export interface Feedback {
   resposta?: string;
 }
 
+export interface MinistroSituacao {
+  id: number;
+  nome: string;
+  funcao?: string;
+  escalasMes: number;
+}
+
+export interface MinistroExcluido {
+  id: number;
+  nome: string;
+  funcao?: string;
+  escalasMes: number;
+  motivoExclusao: string;
+}
+
+export interface PreviewEscala {
+  eventoId: number;
+  vagas: number;
+  definitivos: MinistroSituacao[];
+  empatados: MinistroSituacao[];
+  vagasNoEmpate: number;
+  selecionadosAuto: number[];
+  excluidos: MinistroExcluido[];
+  temEmpate: boolean;
+}
+
 export interface LogAuditoria {
   id?: number;
   entidade: string;

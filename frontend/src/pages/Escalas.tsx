@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { EscalaService, EventoService } from '@/services/api';
 import { Card, Badge, Spinner, Button, Modal, Select, Alert } from '@/components/ui';
-import { Escala, EscalaMinistro, Evento, StatusEscala } from '@/types';
-import { CheckCircle, XCircle, Zap, Users, Trash2 } from 'lucide-react';
+import { Escala, EscalaMinistro, Evento, StatusEscala, PreviewEscala, MinistroSituacao } from '@/types';
+import { CheckCircle, XCircle, Zap, Users, Trash2, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/utils/date';
 
 export const EscalasPage: React.FC = () => {
@@ -13,13 +13,30 @@ export const EscalasPage: React.FC = () => {
   const [alertVariant, setAlertVariant] = useState<'success' | 'error'>('success');
   const [filterStatus, setFilterStatus] = useState('');
 
-  // modal geração automática
+  // modal: selecionar evento
   const [isGerarOpen, setIsGerarOpen] = useState(false);
   const [gerarEventoId, setGerarEventoId] = useState<number>(0);
-  const [gerarLoading, setGerarLoading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
-  // modal resultado da geração
+  // modal: pré-visualização
+  const [preview, setPreview] = useState<PreviewEscala | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [empatadosSelecionados, setEmpatadosSelecionados] = useState<Set<number>>(new Set());
+  const [confirmarLoading, setConfirmarLoading] = useState(false);
+
+  const [substituirPreview, setSubstituirPreview] = useState<PreviewEscala | null>(null);
+  const [isSubstituirPreviewOpen, setIsSubstituirPreviewOpen] = useState(false);
+  const [substituirPreviewEscalaId, setSubstituirPreviewEscalaId] = useState<number | null>(null);
+  const [substituirPreviewTargetId, setSubstituirPreviewTargetId] = useState<number | null>(null);
+  const [substituirPreviewSelectedId, setSubstituirPreviewSelectedId] = useState<number | null>(null);
+  const [substituirPreviewLoading, setSubstituirPreviewLoading] = useState(false);
+  const [substituirPreviewConfirmLoading, setSubstituirPreviewConfirmLoading] = useState(false);
+
+  // modal: resultado
   const [escalasGerada, setEscalaGerada] = useState<Escala | null>(null);
+  const [isSubstituirOpen, setIsSubstituirOpen] = useState(false);
+  const [escalaParaSubstituir, setEscalaParaSubstituir] = useState<Escala | null>(null);
+  const [substituirLoading, setSubstituirLoading] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -44,20 +61,53 @@ export const EscalasPage: React.FC = () => {
     setAlertVariant(variant);
   };
 
-  const handleGerar = async () => {
+  const handlePreview = async () => {
     if (!gerarEventoId) { showAlert('Selecione um evento', 'error'); return; }
-    setGerarLoading(true);
+    setPreviewLoading(true);
     try {
-      const resultado = await EscalaService.gerarEscala(gerarEventoId);
+      const prev = await EscalaService.previewEscala(gerarEventoId);
+      setPreview(prev);
+      setEmpatadosSelecionados(new Set(prev.selecionadosAuto));
       setIsGerarOpen(false);
+      setIsPreviewOpen(true);
+    } catch (err: any) {
+      showAlert(err?.response?.data?.detail || 'Erro ao pré-visualizar escala', 'error');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const toggleEmpatado = (id: number) => {
+    setEmpatadosSelecionados((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleConfirmar = async (useSystem: boolean) => {
+    if (!preview) return;
+    setConfirmarLoading(true);
+    try {
+      const definitivosIds = preview.definitivos.map((m) => m.id);
+      const empatadosIds = useSystem ? preview.selecionadosAuto : [...empatadosSelecionados];
+      const resultado = await EscalaService.gerarEscala(gerarEventoId, [...definitivosIds, ...empatadosIds]);
+      setIsPreviewOpen(false);
+      setPreview(null);
       setGerarEventoId(0);
       setEscalaGerada(resultado);
       await loadData();
     } catch (err: any) {
-      showAlert(err?.response?.data?.message || 'Erro ao gerar escala', 'error');
+      showAlert(err?.response?.data?.detail || 'Erro ao gerar escala', 'error');
     } finally {
-      setGerarLoading(false);
+      setConfirmarLoading(false);
     }
+  };
+
+  const fecharPreview = () => {
+    setIsPreviewOpen(false);
+    setPreview(null);
+    setIsGerarOpen(true);
   };
 
   const handleApprove = async (id: number) => {
@@ -92,6 +142,74 @@ export const EscalasPage: React.FC = () => {
     }
   };
 
+  const openSubstituirModal = (escala: Escala) => {
+    setEscalaParaSubstituir(escala);
+    setIsSubstituirOpen(true);
+  };
+
+  const closeSubstituirModal = () => {
+    setIsSubstituirOpen(false);
+    setEscalaParaSubstituir(null);
+  };
+
+  const handleOpenSubstituicaoPreview = async (escalaId: number, ministroId: number) => {
+    setIsSubstituirOpen(false);
+    setEscalaParaSubstituir(null);
+    setSubstituirPreviewLoading(true);
+    try {
+      const prev = await EscalaService.previewSubstituicao(escalaId, ministroId);
+      setSubstituirPreview(prev);
+      setSubstituirPreviewEscalaId(escalaId);
+      setSubstituirPreviewTargetId(ministroId);
+      setSubstituirPreviewSelectedId(prev.selecionadosAuto[0] ?? null);
+      setIsSubstituirPreviewOpen(true);
+    } catch (err: any) {
+      showAlert(err?.response?.data?.detail || 'Erro ao pré-visualizar substituição', 'error');
+      setIsSubstituirOpen(true);
+    } finally {
+      setSubstituirPreviewLoading(false);
+    }
+  };
+
+  const closeSubstituirPreview = () => {
+    setIsSubstituirPreviewOpen(false);
+    setSubstituirPreview(null);
+    setSubstituirPreviewEscalaId(null);
+    setSubstituirPreviewTargetId(null);
+    setSubstituirPreviewSelectedId(null);
+  };
+
+  const handleSubstituirPreviewToggle = (id: number) => {
+    setSubstituirPreviewSelectedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleConfirmarSubstituicao = async (useSystem: boolean) => {
+    if (!substituirPreview || substituirPreviewTargetId == null) return;
+    setSubstituirPreviewConfirmLoading(true);
+    try {
+      let selectedId: number | undefined;
+      if (useSystem || !substituirPreview.temEmpate) {
+        selectedId = substituirPreview.selecionadosAuto[0];
+      } else {
+        selectedId = substituirPreviewSelectedId ?? undefined;
+      }
+      if (!selectedId) {
+        throw new Error('Selecione um substituto ou use a opção Sistema decide.');
+      }
+      if (!substituirPreviewEscalaId) {
+        throw new Error('Escala não encontrada para substituição.');
+      }
+      await EscalaService.substituirEscala(substituirPreviewEscalaId, substituirPreviewTargetId, selectedId);
+      showAlert('Substituição realizada com sucesso!', 'success');
+      closeSubstituirPreview();
+      await loadData();
+    } catch (err: any) {
+      showAlert(err?.response?.data?.detail || err?.message || 'Erro ao confirmar substituição', 'error');
+    } finally {
+      setSubstituirPreviewConfirmLoading(false);
+    }
+  };
+
   const getStatusColor = (status: StatusEscala): 'primary' | 'success' | 'warning' | 'danger' => {
     switch (status) {
       case StatusEscala.PROPOSTA:   return 'warning';
@@ -104,6 +222,17 @@ export const EscalasPage: React.FC = () => {
 
   const eventosDisponiveis = eventos.filter((e) => !e.cancelado);
   const filteredEscalas = escalas.filter((e) => !filterStatus || e.status === filterStatus);
+
+  const substituirPreviewDisponiveis = substituirPreview
+    ? [...substituirPreview.definitivos, ...substituirPreview.empatados]
+    : [];
+  const substituirPreviewSelectionValid =
+    !substituirPreview?.temEmpate || substituirPreviewSelectedId != null;
+
+  // preview validation
+  const empatadoCount = empatadosSelecionados.size;
+  const vagasNoEmpate = preview?.vagasNoEmpate ?? 0;
+  const selecaoValida = !preview?.temEmpate || empatadoCount === vagasNoEmpate;
 
   if (loading && escalas.length === 0) {
     return <div className="flex items-center justify-center h-96"><Spinner size="lg" /></div>;
@@ -163,6 +292,11 @@ export const EscalasPage: React.FC = () => {
                           </Button>
                         </>
                       )}
+                      {escala.status === StatusEscala.APROVADA && (
+                        <Button size="sm" variant="secondary" onClick={() => openSubstituirModal(escala)}>
+                          <Users size={16} className="mr-1" /> Editar
+                        </Button>
+                      )}
                       <button
                         onClick={() => handleDelete(escala.id!)}
                         className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -194,7 +328,6 @@ export const EscalasPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Ministros escalados */}
                 {escala.escalaMinistros.length > 0 && (
                   <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1">
@@ -232,7 +365,7 @@ export const EscalasPage: React.FC = () => {
         )}
       </div>
 
-      {/* Modal: Gerar Escala automática */}
+      {/* Modal 1: Selecionar evento */}
       <Modal
         isOpen={isGerarOpen}
         title="⚡ Gerar Escala Automaticamente"
@@ -242,15 +375,15 @@ export const EscalasPage: React.FC = () => {
             <Button variant="secondary" onClick={() => { setIsGerarOpen(false); setGerarEventoId(0); }}>
               Cancelar
             </Button>
-            <Button onClick={handleGerar} disabled={gerarLoading}>
-              {gerarLoading ? <Spinner size="sm" /> : <><Zap size={16} className="mr-1" /> Gerar</>}
+            <Button onClick={handlePreview} disabled={previewLoading}>
+              {previewLoading ? <Spinner size="sm" /> : <><Zap size={16} className="mr-1" /> Pré-visualizar</>}
             </Button>
           </div>
         }
       >
         <div className="space-y-3">
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Selecione o evento. O sistema irá ordenar os ministros ativos por número de escalas no mês e sortear os disponíveis automaticamente.
+            Selecione o evento. O sistema irá mostrar quais ministros estão disponíveis, excluídos e em empate antes de gerar.
           </p>
           <Select
             label="Evento *"
@@ -266,15 +399,226 @@ export const EscalasPage: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Modal: Resultado da geração */}
+      {/* Modal 2: Pré-visualização */}
+      {preview && (
+        <Modal
+          isOpen={isPreviewOpen}
+          title="🔍 Pré-visualização da Escala"
+          onClose={fecharPreview}
+          actions={
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="secondary" onClick={fecharPreview}>
+                Voltar
+              </Button>
+              {preview.temEmpate && (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleConfirmar(true)}
+                  disabled={confirmarLoading}
+                >
+                  {confirmarLoading ? <Spinner size="sm" /> : 'Sistema decide'}
+                </Button>
+              )}
+              <Button
+                onClick={() => handleConfirmar(false)}
+                disabled={confirmarLoading || !selecaoValida}
+              >
+                {confirmarLoading ? <Spinner size="sm" /> : <><CheckCircle size={16} className="mr-1" /> Confirmar seleção</>}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
+
+            {/* Excluídos */}
+            {preview.excluidos.length > 0 && (
+              <section>
+                <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2 flex items-center gap-1">
+                  <XCircle size={14} /> Ministros indisponíveis ({preview.excluidos.length})
+                </p>
+                <ul className="space-y-1">
+                  {preview.excluidos.map((m) => (
+                    <li key={m.id} className="flex items-start justify-between gap-2 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-sm">
+                      <span className="font-medium text-slate-800 dark:text-slate-200">
+                        {m.nome}
+                        {m.funcao && <span className="ml-1 text-slate-500">· {m.funcao}</span>}
+                      </span>
+                      <span className="text-red-600 dark:text-red-400 text-xs shrink-0 text-right">{m.motivoExclusao}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* Definitivos */}
+            {preview.definitivos.length > 0 && (
+              <section>
+                <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1">
+                  <CheckCircle size={14} /> Selecionados ({preview.definitivos.length})
+                </p>
+                <ul className="space-y-1">
+                  {preview.definitivos.map((m) => (
+                    <MinistroRow key={m.id} m={m} locked />
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* Empatados */}
+            {preview.temEmpate && preview.empatados.length > 0 && (
+              <section>
+                <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-1 flex items-center gap-1">
+                  ⚖️ Em empate — escolha {vagasNoEmpate} de {preview.empatados.length}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  Todos com {preview.empatados[0]?.escalasMes ?? 0} escala(s) no mês. O sistema pré-selecionou {vagasNoEmpate}.
+                </p>
+
+                {/* Business rule warning */}
+                {!selecaoValida && (
+                  <div className="flex items-start gap-2 p-2 mb-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 text-xs">
+                    <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                    <span>
+                      {empatadoCount < vagasNoEmpate
+                        ? `Selecione mais ${vagasNoEmpate - empatadoCount} ministro(s) para preencher todas as vagas.`
+                        : `Você selecionou ${empatadoCount - vagasNoEmpate} ministro(s) a mais — isso quebraria o equilíbrio de escalas.`}
+                    </span>
+                  </div>
+                )}
+
+                <ul className="space-y-1">
+                  {preview.empatados.map((m) => (
+                    <MinistroRow
+                      key={m.id}
+                      m={m}
+                      checked={empatadosSelecionados.has(m.id)}
+                      onToggle={() => toggleEmpatado(m.id)}
+                    />
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {/* Nenhum disponível */}
+            {preview.definitivos.length === 0 && !preview.temEmpate && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
+                Nenhum ministro disponível para este evento.
+              </p>
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {substituirPreview && (
+        <Modal
+          isOpen={isSubstituirPreviewOpen}
+          title="🔄 Pré-visualização da Substituição"
+          onClose={closeSubstituirPreview}
+          actions={
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="secondary" onClick={closeSubstituirPreview}>
+                Voltar
+              </Button>
+              {substituirPreview.temEmpate && (
+                <Button
+                  variant="secondary"
+                  onClick={() => handleConfirmarSubstituicao(true)}
+                  disabled={substituirPreviewConfirmLoading}
+                >
+                  {substituirPreviewConfirmLoading ? <Spinner size="sm" /> : 'Sistema decide'}
+                </Button>
+              )}
+              <Button
+                onClick={() => handleConfirmarSubstituicao(false)}
+                disabled={substituirPreviewConfirmLoading || (substituirPreview.temEmpate && substituirPreviewSelectedId == null)}
+              >
+                {substituirPreviewConfirmLoading ? <Spinner size="sm" /> : <><CheckCircle size={16} className="mr-1" /> Confirmar substituição</>}
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-5 max-h-[60vh] overflow-y-auto pr-1">
+            {substituirPreview.excluidos.length > 0 && (
+              <section>
+                <p className="text-sm font-semibold text-red-700 dark:text-red-400 mb-2 flex items-center gap-1">
+                  <XCircle size={14} /> Ministros indisponíveis ({substituirPreview.excluidos.length})
+                </p>
+                <ul className="space-y-1">
+                  {substituirPreview.excluidos.map((m) => (
+                    <li key={m.id} className="flex items-start justify-between gap-2 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-sm">
+                      <span className="font-medium text-slate-800 dark:text-slate-200">
+                        {m.nome}
+                        {m.funcao && <span className="ml-1 text-slate-500">· {m.funcao}</span>}
+                      </span>
+                      <span className="text-red-600 dark:text-red-400 text-xs shrink-0 text-right">{m.motivoExclusao}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {substituirPreview.definitivos.length > 0 && (
+              <section>
+                <p className="text-sm font-semibold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1">
+                  <CheckCircle size={14} /> Selecionados ({substituirPreview.definitivos.length})
+                </p>
+                <ul className="space-y-1">
+                  {substituirPreview.definitivos.map((m) => (
+                    <MinistroRow key={m.id} m={m} locked />
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {substituirPreviewDisponiveis.length > 0 && (
+              <section>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2 flex items-center gap-1">
+                  <Users size={14} /> Disponíveis para substituição ({substituirPreviewDisponiveis.length})
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                  Escolha um substituto à mão ou use o botão "Sistema decide" para escolher automaticamente.
+                </p>
+                <ul className="space-y-2">
+                  {substituirPreviewDisponiveis.map((m) => (
+                    <li
+                      key={m.id}
+                      className={`flex items-center justify-between gap-2 p-3 rounded-lg border transition-colors cursor-pointer
+                        ${substituirPreviewSelectedId === m.id ? 'border-primary-600 bg-primary-50 dark:border-primary-400 dark:bg-primary-950/30' : 'border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800'}
+                      `}
+                      onClick={() => handleSubstituirPreviewToggle(m.id)}
+                    >
+                      <div>
+                        <p className="font-medium text-slate-900 dark:text-white">{m.nome}</p>
+                        {m.funcao && <p className="text-xs text-slate-500 dark:text-slate-400">{m.funcao}</p>}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <span>{m.escalasMes} escala(s)/mês</span>
+                        <span className="px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300">
+                          {substituirPreviewSelectedId === m.id ? 'Selecionado' : 'Selecionar'}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            {substituirPreviewDisponiveis.length === 0 && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">
+                Nenhum ministro disponível para substituição.
+              </p>
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal 3: Resultado */}
       {escalasGerada && (
         <Modal
           isOpen={true}
           title="✅ Escala Gerada com Sucesso!"
           onClose={() => setEscalaGerada(null)}
-          actions={
-            <Button onClick={() => setEscalaGerada(null)}>Fechar</Button>
-          }
+          actions={<Button onClick={() => setEscalaGerada(null)}>Fechar</Button>}
         >
           <div className="space-y-4">
             <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-sm text-green-800 dark:text-green-300">
@@ -293,9 +637,7 @@ export const EscalasPage: React.FC = () => {
                     <span className="font-medium text-slate-900 dark:text-white">
                       {em.ministroNome ?? `Ministro #${em.ministroId}`}
                     </span>
-                    {em.ministroFuncao && (
-                      <Badge variant="primary">{em.ministroFuncao}</Badge>
-                    )}
+                    {em.ministroFuncao && <Badge variant="primary">{em.ministroFuncao}</Badge>}
                   </li>
                 ))}
               </ul>
@@ -304,6 +646,86 @@ export const EscalasPage: React.FC = () => {
         </Modal>
       )}
 
+      {escalaParaSubstituir && (
+        <Modal
+          isOpen={isSubstituirOpen}
+          title="✏️ Substituir Ministro"
+          onClose={closeSubstituirModal}
+          actions={
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={closeSubstituirModal}>Fechar</Button>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Escolha o ministro que não poderá participar da escala aprovada. O sistema fará um novo sorteio automático de substituto disponível.
+            </p>
+            {escalaParaSubstituir.escalaMinistros.length > 0 ? (
+              <div className="space-y-2">
+                {escalaParaSubstituir.escalaMinistros.map((em) => (
+                  <div key={em.id ?? em.ministroId} className="flex items-center justify-between gap-2 p-3 rounded-lg bg-slate-50 dark:bg-slate-800">
+                    <div>
+                      <p className="font-medium text-slate-900 dark:text-white">{em.ministroNome ?? `Ministro #${em.ministroId}`}</p>
+                      {em.ministroFuncao && <p className="text-xs text-slate-500 dark:text-slate-400">{em.ministroFuncao}</p>}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => handleOpenSubstituicaoPreview(escalaParaSubstituir.id!, em.ministroId)}
+                      disabled={substituirLoading || substituirPreviewLoading}
+                    >
+                      {substituirPreviewLoading ? <Spinner size="sm" /> : 'Substituir'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">Nenhum ministro encontrado para substituição.</p>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
+
+interface MinistroRowProps {
+  m: MinistroSituacao;
+  locked?: boolean;
+  checked?: boolean;
+  onToggle?: () => void;
+}
+
+const MinistroRow: React.FC<MinistroRowProps> = ({ m, locked, checked, onToggle }) => (
+  <li
+    className={`flex items-center justify-between gap-2 p-2 rounded-lg text-sm cursor-pointer transition-colors
+      ${locked
+        ? 'bg-green-50 dark:bg-green-900/20'
+        : checked
+          ? 'bg-blue-50 dark:bg-blue-900/20'
+          : 'bg-slate-50 dark:bg-slate-800 opacity-60'
+      }`}
+    onClick={!locked ? onToggle : undefined}
+    role={!locked ? 'checkbox' : undefined}
+    aria-checked={!locked ? checked : undefined}
+    tabIndex={!locked ? 0 : undefined}
+    onKeyDown={!locked ? (e) => { if (e.key === ' ' || e.key === 'Enter') onToggle?.(); } : undefined}
+  >
+    <div className="flex items-center gap-2 min-w-0">
+      {!locked && (
+        <input
+          type="checkbox"
+          readOnly
+          checked={checked}
+          className="w-4 h-4 accent-primary-600 shrink-0"
+          tabIndex={-1}
+        />
+      )}
+      {locked && <CheckCircle size={14} className="text-green-500 shrink-0" />}
+      <span className="font-medium text-slate-900 dark:text-white truncate">{m.nome}</span>
+      {m.funcao && <span className="text-slate-500 dark:text-slate-400 text-xs shrink-0">· {m.funcao}</span>}
+    </div>
+    <span className="text-xs text-slate-400 shrink-0">{m.escalasMes} escala(s)/mês</span>
+  </li>
+);

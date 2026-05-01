@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Ministro, Evento, Escala, Feedback, LogAuditoria, Indisponibilidade } from '@/types';
+import { Ministro, Evento, Escala, Feedback, LogAuditoria, Indisponibilidade, PreviewEscala } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
 
@@ -103,13 +103,30 @@ export const EscalaService = {
     return res.data;
   },
 
-  gerarEscala: async (eventoId: number): Promise<Escala> => {
-    const res = await api.post(`/escalas/gerar/${eventoId}`);
+  previewEscala: async (eventoId: number): Promise<PreviewEscala> => {
+    const res = await api.get(`/escalas/preview/${eventoId}`);
+    return res.data;
+  },
+
+  previewSubstituicao: async (escalaId: number, ministroId: number): Promise<PreviewEscala> => {
+    const res = await api.get(`/escalas/${escalaId}/substituir/preview/${ministroId}`);
+    return res.data;
+  },
+
+  gerarEscala: async (eventoId: number, ministroIdsManuais?: number[]): Promise<Escala> => {
+    const body = ministroIdsManuais ? { ministroIdsManuais } : undefined;
+    const res = await api.post(`/escalas/gerar/${eventoId}`, body);
     return res.data;
   },
 
   approveEscala: async (id: number): Promise<Escala> => {
     const res = await api.put(`/escalas/${id}/aprovar`);
+    return res.data;
+  },
+
+  substituirEscala: async (id: number, ministroId: number, substitutoId?: number): Promise<Escala> => {
+    const body = { ministroId, substitutoId };
+    const res = await api.put(`/escalas/${id}/substituir`, body);
     return res.data;
   },
 

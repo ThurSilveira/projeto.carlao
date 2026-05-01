@@ -144,8 +144,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Footer */}
       <footer className="bg-white dark:bg-neutral-850 border-t border-slate-200 dark:border-neutral-700 py-6 mt-12 transition-colors duration-300">
         <div className="container mx-auto px-4 text-center text-sm text-slate-600 dark:text-slate-400">
-          <p>© 2026 Escala Ministerial — Paróquia São José</p>
-          <p className="mt-2">Desenvolvido com React + TypeScript + Tailwind CSS</p>
+          <p>© Escala Ministerial — TIC Uni-FACEF</p>
         </div>
       </footer>
     </div>

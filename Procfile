@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT -jar target/escala-ministerial-1.0.0.jar
+web: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
