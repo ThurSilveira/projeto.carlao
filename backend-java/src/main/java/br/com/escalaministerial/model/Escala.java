@@ -1,6 +1,18 @@
 package br.com.escalaministerial.model;
 
 import br.com.escalaministerial.enums.StatusEscala;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -21,11 +33,19 @@ import java.util.Objects;
  * Estado: o ciclo de vida (StatusEscala) define as transições válidas
  *   e é central para as regras de negócio (ex.: só gera escala no estado PROPOSTA).
  */
+@Entity
+@Table(name = "escalas")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Escala {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /** Evento ao qual esta escala está vinculada. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evento_id")
+    @JsonIgnore
     private Evento evento;
 
     /** Data em que a escala foi gerada/atribuída. */
@@ -37,6 +57,8 @@ public class Escala {
     private StatusEscala status;
 
     // ── Composição: ministros vinculados pertencem a esta escala ──────────────
+    @OneToMany(mappedBy = "escala", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<EscalaMinistro> escalaMinistros = new ArrayList<>();
 
     // ── Construtores ──────────────────────────────────────────────────────────

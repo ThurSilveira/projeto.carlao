@@ -1,6 +1,12 @@
 package br.com.escalaministerial.model;
 
 import br.com.escalaministerial.enums.TipoAcao;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -17,8 +23,13 @@ import java.util.Objects;
  * Encapsulamento: o conjunto de campos captura QUEM fez O QUÊ, em QUAL entidade,
  *   com transição de QUAL → QUAL estado.
  */
+@Entity
+@Table(name = "auditoria")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class LogAuditoria {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /**

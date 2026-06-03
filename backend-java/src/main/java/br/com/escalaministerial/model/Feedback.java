@@ -1,6 +1,17 @@
 package br.com.escalaministerial.model;
 
 import br.com.escalaministerial.enums.StatusFeedback;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -19,14 +30,25 @@ import java.util.Objects;
  * Encapsulamento: a nota é um inteiro restrito ao intervalo [1, 5] pelo domínio,
  *   mas a validação é responsabilidade da camada de serviço.
  */
+@Entity
+@Table(name = "feedbacks")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Feedback {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     /** Ministro que enviou o feedback. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ministro_id")
+    @JsonIgnore
     private Ministro ministro;
 
     /** Evento avaliado. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evento_id")
+    @JsonIgnore
     private Evento evento;
 
     /**

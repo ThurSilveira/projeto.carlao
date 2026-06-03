@@ -1,6 +1,15 @@
 package br.com.escalaministerial.model;
 
 import br.com.escalaministerial.enums.TipoEvento;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,8 +27,13 @@ import java.util.Objects;
  * Encapsulamento: o flag `cancelado` é controlado internamente, impedindo
  *   a geração de escalas para eventos inválidos.
  */
+@Entity
+@Table(name = "eventos")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Evento {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
     private LocalDate data;
@@ -41,7 +55,10 @@ public class Evento {
     private boolean cancelado;
 
     // ── Associações bidirecionais ──────────────────────────────────────────────
+    @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Escala> escalas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "evento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Feedback> feedbacks = new ArrayList<>();
 
     // ── Construtores ──────────────────────────────────────────────────────────

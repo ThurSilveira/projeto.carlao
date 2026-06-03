@@ -1,6 +1,15 @@
 package br.com.escalaministerial.model;
 
 import br.com.escalaministerial.enums.FuncaoMinistro;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,8 +28,13 @@ import java.util.Objects;
  * Associação: referencia EscalaMinistro e Feedback sem possuí-los
  *   (ciclo de vida independente).
  */
+@Entity
+@Table(name = "ministros")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Ministro {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
     private String email;
@@ -45,12 +59,15 @@ public class Ministro {
     private String funcaoEspecificada;
 
     // ── Composição: Indisponibilidades pertencem ao Ministro ──────────────────
+    @OneToMany(mappedBy = "ministro", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Indisponibilidade> indisponibilidades = new ArrayList<>();
 
     // ── Associação bidirecional: participações em escalas ─────────────────────
+    @OneToMany(mappedBy = "ministro", fetch = FetchType.LAZY)
     private List<EscalaMinistro> escalaMinistros = new ArrayList<>();
 
     // ── Associação bidirecional: feedbacks enviados ───────────────────────────
+    @OneToMany(mappedBy = "ministro", fetch = FetchType.LAZY)
     private List<Feedback> feedbacks = new ArrayList<>();
 
     // ── Construtores ──────────────────────────────────────────────────────────
