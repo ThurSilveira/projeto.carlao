@@ -1,5 +1,6 @@
 package br.com.escalaministerial.controller;
 
+import br.com.escalaministerial.dto.response.AuditoriaResponse;
 import br.com.escalaministerial.model.LogAuditoria;
 import br.com.escalaministerial.repository.LogAuditoriaRepository;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +22,25 @@ public class AuditoriaController {
     }
 
     @GetMapping
-    public List<LogAuditoria> listar() {
-        return repository.findAll();
+    public List<AuditoriaResponse> listar() {
+        return repository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LogAuditoria> obter(@PathVariable Long id) {
+    public ResponseEntity<AuditoriaResponse> obter(@PathVariable Long id) {
         return repository.findById(id)
+                .map(this::toResponse)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private AuditoriaResponse toResponse(LogAuditoria log) {
+        return new AuditoriaResponse(
+                log.getId(), log.getEntidade(), log.getAcao(),
+                log.getStatusAnterior(), log.getStatusNovo(),
+                log.getRealizadoPorId(), log.getDataHora()
+        );
     }
 }

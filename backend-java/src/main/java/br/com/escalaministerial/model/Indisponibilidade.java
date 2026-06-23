@@ -2,7 +2,6 @@ package br.com.escalaministerial.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -11,18 +10,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
-/**
- * POO — Classe de domínio (entidade).
- *
- * Representa uma data/período em que um Ministro está indisponível.
- * Relacionamento: Agregação com Ministro (N Indisponibilidades → 1 Ministro).
- * Encapsulamento: todos os atributos são privados e acessados por getters/setters.
- */
 @Entity
 @Table(name = "indisponibilidades")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Indisponibilidade {
 
@@ -30,44 +31,16 @@ public class Indisponibilidade {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Chave estrangeira conceitual — referência ao dono desta indisponibilidade. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ministro_id")
     @JsonIgnore
     private Ministro ministro;
 
-    /** Data do bloqueio. */
     private LocalDate data;
-
-    /**
-     * Horário de início do bloqueio no formato "HH:MM".
-     * Null indica dia inteiro indisponível.
-     */
     private String horarioInicio;
-
-    /**
-     * Horário de fim do bloqueio no formato "HH:MM".
-     * Null se não houver janela de tempo definida.
-     */
     private String horarioFim;
-
-    /** Descrição opcional do motivo da indisponibilidade. */
     private String motivo;
 
-    // ── Construtores ──────────────────────────────────────────────────────────
-
-    /** Construtor padrão exigido pelo framework. */
-    public Indisponibilidade() {}
-
-    /**
-     * Construtor completo para criação programática de uma indisponibilidade.
-     *
-     * @param ministro     ministro associado
-     * @param data         data do bloqueio
-     * @param horarioInicio início do intervalo bloqueado (null = dia inteiro)
-     * @param horarioFim   fim do intervalo bloqueado
-     * @param motivo       descrição textual opcional
-     */
     public Indisponibilidade(Ministro ministro, LocalDate data,
                              String horarioInicio, String horarioFim, String motivo) {
         this.ministro = ministro;
@@ -77,33 +50,22 @@ public class Indisponibilidade {
         this.motivo = motivo;
     }
 
-    // ── Getters e Setters ─────────────────────────────────────────────────────
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Indisponibilidade that)) return false;
+        return Objects.equals(id, that.id);
+    }
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Ministro getMinistro() { return ministro; }
-    public void setMinistro(Ministro ministro) { this.ministro = ministro; }
-
-    public LocalDate getData() { return data; }
-    public void setData(LocalDate data) { this.data = data; }
-
-    public String getHorarioInicio() { return horarioInicio; }
-    public void setHorarioInicio(String horarioInicio) { this.horarioInicio = horarioInicio; }
-
-    public String getHorarioFim() { return horarioFim; }
-    public void setHorarioFim(String horarioFim) { this.horarioFim = horarioFim; }
-
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
-
-    // ── Override ──────────────────────────────────────────────────────────────
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
     @Override
     public String toString() {
         return "Indisponibilidade{" +
                 "id=" + id +
-                ", ministro=" + (ministro != null ? ministro.getNome() : "null") +
                 ", data=" + data +
                 ", horarioInicio='" + horarioInicio + '\'' +
                 ", horarioFim='" + horarioFim + '\'' +

@@ -1,14 +1,19 @@
 package br.com.escalaministerial.controller;
 
-import br.com.escalaministerial.enums.TipoAcao;
-import br.com.escalaministerial.model.Indisponibilidade;
-import br.com.escalaministerial.model.Ministro;
-import br.com.escalaministerial.repository.IndisponibilidadeRepository;
-import br.com.escalaministerial.repository.MinistroRepository;
-import br.com.escalaministerial.service.AuditoriaService;
+import br.com.escalaministerial.dto.request.IndisponibilidadeRequest;
+import br.com.escalaministerial.dto.response.IndisponibilidadeResponse;
+import br.com.escalaministerial.service.IndisponibilidadeService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -16,65 +21,34 @@ import java.util.List;
 @RequestMapping("/api/ministros/{ministroId}/indisponibilidades")
 public class IndisponibilidadeController {
 
-    private final MinistroRepository ministroRepository;
-    private final IndisponibilidadeRepository repository;
-    private final AuditoriaService auditoriaService;
+    private final IndisponibilidadeService service;
 
-    public IndisponibilidadeController(MinistroRepository ministroRepository,
-                                      IndisponibilidadeRepository repository,
-                                      AuditoriaService auditoriaService) {
-        this.ministroRepository = ministroRepository;
-        this.repository = repository;
-        this.auditoriaService = auditoriaService;
+    public IndisponibilidadeController(IndisponibilidadeService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public ResponseEntity<List<Indisponibilidade>> listar(@PathVariable Long ministroId) {
-        return ministroRepository.findById(ministroId)
-                .map(ministro -> ResponseEntity.ok(ministro.getIndisponibilidades()))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<List<Indisponibilidade>>build());
+    public ResponseEntity<List<IndisponibilidadeResponse>> listar(@PathVariable Long ministroId) {
+        return ResponseEntity.ok(service.listarPorMinistro(ministroId));
     }
 
     @PostMapping
-    public ResponseEntity<Indisponibilidade> criar(@PathVariable Long ministroId,
-                                                   @RequestBody Indisponibilidade item) {
-        return ministroRepository.findById(ministroId).map(ministro -> {
-            item.setMinistro(ministro);
-            Indisponibilidade salvo = repository.save(item);
-            ministro.getIndisponibilidades().add(salvo);
-            auditoriaService.registrar("Indisponibilidade", TipoAcao.CRIADO, null, item.getMotivo());
-            return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Indisponibilidade>build());
+    public ResponseEntity<IndisponibilidadeResponse> criar(@PathVariable Long ministroId,
+                                                            @Valid @RequestBody IndisponibilidadeRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.criar(ministroId, request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Indisponibilidade> atualizar(@PathVariable Long ministroId,
-                                                       @PathVariable Long id,
-                                                       @RequestBody Indisponibilidade dados) {
-        return repository.findById(id).map(existente -> {
-            if (existente.getMinistro() == null || !existente.getMinistro().getId().equals(ministroId)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).<Indisponibilidade>build();
-            }
-            existente.setData(dados.getData());
-            existente.setHorarioInicio(dados.getHorarioInicio());
-            existente.setHorarioFim(dados.getHorarioFim());
-            existente.setMotivo(dados.getMotivo());
-            Indisponibilidade salvo = repository.save(existente);
-            auditoriaService.registrar("Indisponibilidade", TipoAcao.ATUALIZADO, String.valueOf(existente.getId()), String.valueOf(salvo.getId()));
-            return ResponseEntity.ok(salvo);
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Indisponibilidade>build());
+    public ResponseEntity<IndisponibilidadeResponse> atualizar(@PathVariable Long ministroId,
+                                                                @PathVariable Long id,
+                                                                @Valid @RequestBody IndisponibilidadeRequest request) {
+        return ResponseEntity.ok(service.atualizar(ministroId, id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long ministroId,
-                                        @PathVariable Long id) {
-        return repository.findById(id).map(existente -> {
-            if (existente.getMinistro() == null || !existente.getMinistro().getId().equals(ministroId)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).<Void>build();
-            }
-            repository.delete(existente);
-            auditoriaService.registrar("Indisponibilidade", TipoAcao.DELETADO, String.valueOf(existente.getId()), null);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Void>build());
+    public ResponseEntity<Void> deletar(@PathVariable Long ministroId, @PathVariable Long id) {
+        service.deletar(ministroId, id);
+        return ResponseEntity.noContent().build();
     }
 }

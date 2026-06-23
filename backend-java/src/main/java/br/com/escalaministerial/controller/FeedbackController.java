@@ -1,12 +1,20 @@
 package br.com.escalaministerial.controller;
 
-import br.com.escalaministerial.enums.TipoAcao;
-import br.com.escalaministerial.model.Feedback;
-import br.com.escalaministerial.repository.FeedbackRepository;
-import br.com.escalaministerial.service.AuditoriaService;
+import br.com.escalaministerial.dto.request.FeedbackRequest;
+import br.com.escalaministerial.dto.request.FeedbackUpdateRequest;
+import br.com.escalaministerial.dto.response.FeedbackResponse;
+import br.com.escalaministerial.service.FeedbackService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -14,52 +22,36 @@ import java.util.List;
 @RequestMapping("/api/feedbacks")
 public class FeedbackController {
 
-    private final FeedbackRepository repository;
-    private final AuditoriaService auditoriaService;
+    private final FeedbackService service;
 
-    public FeedbackController(FeedbackRepository repository, AuditoriaService auditoriaService) {
-        this.repository = repository;
-        this.auditoriaService = auditoriaService;
+    public FeedbackController(FeedbackService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public List<Feedback> listar() {
-        return repository.findAll();
+    public List<FeedbackResponse> listar() {
+        return service.listar();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Feedback> obter(@PathVariable Long id) {
-        return repository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Feedback>build());
+    public ResponseEntity<FeedbackResponse> obter(@PathVariable Long id) {
+        return ResponseEntity.ok(service.obter(id));
     }
 
     @PostMapping
-    public ResponseEntity<Feedback> criar(@RequestBody Feedback feedback) {
-        Feedback salvo = repository.save(feedback);
-        auditoriaService.registrar("Feedback", TipoAcao.CRIADO, null, String.valueOf(salvo.getNota()));
-        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
+    public ResponseEntity<FeedbackResponse> criar(@Valid @RequestBody FeedbackRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Feedback> atualizar(@PathVariable Long id, @RequestBody Feedback dados) {
-        return repository.findById(id).map(existente -> {
-            existente.setNota(dados.getNota());
-            existente.setComentario(dados.getComentario());
-            existente.setStatus(dados.getStatus());
-            existente.setResposta(dados.getResposta());
-            Feedback salvo = repository.save(existente);
-            auditoriaService.registrar("Feedback", TipoAcao.ATUALIZADO, String.valueOf(existente.getId()), String.valueOf(salvo.getId()));
-            return ResponseEntity.ok(salvo);
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Feedback>build());
+    public ResponseEntity<FeedbackResponse> atualizar(@PathVariable Long id,
+                                                       @Valid @RequestBody FeedbackUpdateRequest request) {
+        return ResponseEntity.ok(service.atualizar(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        return repository.findById(id).map(existente -> {
-            repository.delete(existente);
-            auditoriaService.registrar("Feedback", TipoAcao.DELETADO, String.valueOf(existente.getId()), null);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Void>build());
+        service.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 }

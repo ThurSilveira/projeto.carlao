@@ -1,12 +1,20 @@
 package br.com.escalaministerial.controller;
 
-import br.com.escalaministerial.enums.TipoAcao;
-import br.com.escalaministerial.model.Escala;
-import br.com.escalaministerial.repository.EscalaRepository;
-import br.com.escalaministerial.service.AuditoriaService;
+import br.com.escalaministerial.dto.request.EscalaRequest;
+import br.com.escalaministerial.dto.request.EscalaUpdateRequest;
+import br.com.escalaministerial.dto.response.EscalaResponse;
+import br.com.escalaministerial.service.EscalaService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -14,52 +22,36 @@ import java.util.List;
 @RequestMapping("/api/escalas")
 public class EscalaController {
 
-    private final EscalaRepository repository;
-    private final AuditoriaService auditoriaService;
+    private final EscalaService service;
 
-    public EscalaController(EscalaRepository repository, AuditoriaService auditoriaService) {
-        this.repository = repository;
-        this.auditoriaService = auditoriaService;
+    public EscalaController(EscalaService service) {
+        this.service = service;
     }
 
     @GetMapping
-    public List<Escala> listar() {
-        return repository.findAll();
+    public List<EscalaResponse> listar() {
+        return service.listar();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Escala> obter(@PathVariable Long id) {
-        return repository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Escala>build());
+    public ResponseEntity<EscalaResponse> obter(@PathVariable Long id) {
+        return ResponseEntity.ok(service.obter(id));
     }
 
     @PostMapping
-    public ResponseEntity<Escala> criar(@RequestBody Escala escala) {
-        Escala salvo = repository.save(escala);
-        auditoriaService.registrar("Escala", TipoAcao.CRIADO, null, salvo.getObservacao());
-        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
+    public ResponseEntity<EscalaResponse> criar(@Valid @RequestBody EscalaRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Escala> atualizar(@PathVariable Long id, @RequestBody Escala dados) {
-        return repository.findById(id).map(existente -> {
-            existente.setEvento(dados.getEvento());
-            existente.setDataAtribuicao(dados.getDataAtribuicao());
-            existente.setObservacao(dados.getObservacao());
-            existente.setStatus(dados.getStatus());
-            Escala salvo = repository.save(existente);
-            auditoriaService.registrar("Escala", TipoAcao.ATUALIZADO, existente.getObservacao(), salvo.getObservacao());
-            return ResponseEntity.ok(salvo);
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Escala>build());
+    public ResponseEntity<EscalaResponse> atualizar(@PathVariable Long id,
+                                                     @Valid @RequestBody EscalaUpdateRequest request) {
+        return ResponseEntity.ok(service.atualizar(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        return repository.findById(id).map(existente -> {
-            repository.delete(existente);
-            auditoriaService.registrar("Escala", TipoAcao.DELETADO, existente.getObservacao(), null);
-            return ResponseEntity.noContent().<Void>build();
-        }).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).<Void>build());
+        service.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 }

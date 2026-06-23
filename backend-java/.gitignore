@@ -1,36 +1,63 @@
-# Build folders
-.gradle/
-build/
+# Build
 target/
+build/
+*.jar
+*.war
+*.ear
 
-# Maven wrapper directories
+# Maven wrapper
 .mvn/
 
-# IDEs
-.vscode/
+# Gradle
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+*.gradle
+
+# IDE - IntelliJ
 .idea/
 *.iml
 *.ipr
 *.iws
 
-# Eclipse
+# IDE - VS Code
+.vscode/
+
+# IDE - Eclipse
 .project
 .classpath
 .settings/
+bin/
+
+# IDE - NetBeans
+nbproject/
+nbactions.xml
 
 # macOS
 .DS_Store
+*.swp
+*.swo
+*~
 
-# Local environment
-.env
+# Linux
+Thumbs.db
 
-# Logs and temporary files
+# Logs
 *.log
 *.tmp
-*.swp
 
-# Generated files
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Generated
 *.class
+*.zip
+*.tar
+*.gz
 
-# Ignore transient OS files
-Thumbs.db
+# Build output
+out/
+!.mvn/wrapper/maven-wrapper.jar
