@@ -1,0 +1,63 @@
+# Build
+target/
+build/
+*.jar
+*.war
+*.ear
+
+# Maven wrapper
+.mvn/
+
+# Gradle
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+*.gradle
+
+# IDE - IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# IDE - VS Code
+.vscode/
+
+# IDE - Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# IDE - NetBeans
+nbproject/
+nbactions.xml
+
+# macOS
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Linux
+Thumbs.db
+
+# Logs
+*.log
+*.tmp
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Generated
+*.class
+*.zip
+*.tar
+*.gz
+
+# Build output
+out/
+!.mvn/wrapper/maven-wrapper.jar
