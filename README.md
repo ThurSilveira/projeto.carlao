@@ -18,6 +18,10 @@ O PostgreSQL atual usa o plano gratuito do Render e tinha expiração informada
 para 19/09/2026. Confirme o estado do recurso antes de depender de dados de
 produção.
 
+Os registros de demonstração em produção são sintéticos e servem somente para
+testes pessoais. Métricas e listagens do frontend são calculadas integralmente a
+partir da API; não há totais ou percentuais demonstrativos fixos na interface.
+
 ## Arquitetura
 
 ```text

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MinistroService, EventoService, EscalaService, FeedbackService } from '@/services/api';
 import { Card, Badge } from '@/components/ui';
-import { Ministro, Evento, Escala, Feedback } from '@/types';
+import { Ministro, Evento, Escala, Feedback, StatusEscala } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/utils/date';
@@ -58,7 +58,7 @@ export const Dashboard: React.FC = () => {
     },
     {
       label: 'Escalas Ativas',
-      value: escalas.length,
+      value: escalas.filter((e) => e.status !== StatusEscala.CANCELADA).length,
       icon: Clipboard,
       color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
     },
@@ -70,9 +70,25 @@ export const Dashboard: React.FC = () => {
     },
   ];
 
-  const nextEvents = eventos.filter((e) => !e.cancelado).slice(0, 3);
-  const recentFeedbacks = feedbacks.slice(-3);
+  const nextEvents = eventos
+    .filter((e) => !e.cancelado && parseLocalDate(e.data) >= new Date(new Date().setHours(0, 0, 0, 0)))
+    .sort((a, b) => parseLocalDate(a.data).getTime() - parseLocalDate(b.data).getTime())
+    .slice(0, 3);
+  const recentFeedbacks = [...feedbacks]
+    .sort((a, b) => new Date(a.dataEnvio).getTime() - new Date(b.dataEnvio).getTime())
+    .slice(-3);
   const activeMinistros = ministros.filter((m) => m.ativo);
+  const assignments = escalas.flatMap((escala) => escala.escalaMinistros ?? []);
+  const confirmedAssignments = assignments.filter((assignment) => assignment.confirmacaoMinistro).length;
+  const confirmationRate = assignments.length > 0
+    ? Math.round((confirmedAssignments / assignments.length) * 100)
+    : 0;
+  const averageSatisfaction = feedbacks.length > 0
+    ? feedbacks.reduce((total, feedback) => total + feedback.nota, 0) / feedbacks.length
+    : null;
+  const approvedScales = escalas.filter(
+    (escala) => escala.status === StatusEscala.APROVADA || escala.status === StatusEscala.CONFIRMADA,
+  ).length;
 
   return (
     <div className="space-y-8">
@@ -194,7 +210,7 @@ export const Dashboard: React.FC = () => {
             </div>
             <div>
               <p className="text-sm text-slate-600 dark:text-slate-400">Taxa de Confirmação</p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">85%</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{confirmationRate}%</p>
             </div>
           </div>
         </Card>
@@ -202,14 +218,16 @@ export const Dashboard: React.FC = () => {
         <Card>
           <div className="text-center">
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Satisfação Média</p>
-            <p className="text-3xl font-bold text-slate-900 dark:text-white">8.5/10</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">
+              {averageSatisfaction === null ? 'Sem dados' : `${averageSatisfaction.toFixed(1)}/10`}
+            </p>
           </div>
         </Card>
 
         <Card>
           <div className="text-center">
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Escalas Aprovadas</p>
-            <p className="text-3xl font-bold text-slate-900 dark:text-white">{escalas.length}</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">{approvedScales}</p>
           </div>
         </Card>
       </div>
