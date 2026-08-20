@@ -453,8 +453,6 @@ def aprovar(db: Session, escala_id: int) -> EscalaOut | None:
         return None
     prev = escala.status
     escala.status = "APROVADA"
-    if escala.evento:
-        escala.evento.cancelado = True
     auditoria_service.registrar(db, "Escala", "APROVADO", prev, f"APROVADA — {_escala_detalhes(escala)}")
     db.commit()
     db.refresh(escala)

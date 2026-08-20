@@ -186,6 +186,7 @@ deployment-url.txt
 deploy-hook-response.json
 seed-production*.json
 seed-result*.json
+production-data-export*.json
 
 # Project-specific
 .claude/*

@@ -21,6 +21,8 @@ produção.
 Os registros de demonstração em produção são sintéticos e servem somente para
 testes pessoais. Métricas e listagens do frontend são calculadas integralmente a
 partir da API; não há totais ou percentuais demonstrativos fixos na interface.
+Aprovar uma escala altera somente o status da escala; o evento associado
+permanece ativo e só é cancelado pela operação explícita de cancelamento.
 
 ## Arquitetura
 
