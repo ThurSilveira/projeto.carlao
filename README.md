@@ -234,7 +234,7 @@ Push/PR
   └─ Docker: build frontend + build backend
                   │
                   └─ push na main e todos os checks verdes
-                       ├─ Vercel CLI: pull -> build -> deploy --prebuilt
+                       ├─ Vercel Deploy Hook: build da main -> confirma SHA publicado
                        └─ Render API: deploy do commit exato -> aguarda live -> health
 ```
 
@@ -248,9 +248,7 @@ Configure em `Settings > Secrets and variables > Actions`:
 
 | Secret | Uso |
 |---|---|
-| `VERCEL_TOKEN` | Autentica o Vercel CLI |
-| `VERCEL_ORG_ID` | Identifica o usuário/time Vercel |
-| `VERCEL_PROJECT_ID` | Identifica o projeto Vercel |
+| `VERCEL_DEPLOY_HOOK_URL` | Aciona o deploy da `main` após os gates e deve ser tratado como credencial |
 | `RENDER_API_KEY` | Autentica a API do Render |
 | `RENDER_SERVICE_ID` | Identifica o serviço do backend |
 

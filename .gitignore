@@ -183,6 +183,7 @@ private.key
 
 # Local deployment output
 deployment-url.txt
+deploy-hook-response.json
 
 # Project-specific
 .claude/*
