@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { MinistroService, IndisponibilidadeService } from '@/services/api';
 import { Card, Button, Input, Badge, Spinner, Modal, Select, Alert } from '@/components/ui';
-import { Ministro, FuncaoMinistro, TipoEvento, Indisponibilidade } from '@/types';
+import { Ministro, FuncaoMinistro, Indisponibilidade } from '@/types';
 import { Plus, Trash2, Edit2, Calendar } from 'lucide-react';
 import { formatDate } from '@/utils/date';
+import { getErrorMessage } from '@/utils/error';
 
 const emptyIndisp = (): Partial<Indisponibilidade> => ({
   data: '', horarioInicio: '', horarioFim: '', motivo: '',
@@ -33,19 +34,39 @@ export const MinistrosPage: React.FC = () => {
   const [editingIndisp, setEditingIndisp] = useState<Indisponibilidade | null>(null);
   const [isIndispFormOpen, setIsIndispFormOpen] = useState(false);
 
-  useEffect(() => { loadMinistros(); }, []);
-
-  const loadMinistros = async () => {
+  const loadMinistros = useCallback(async () => {
     try {
       setLoading(true);
       const data = await MinistroService.getAllMinistros();
       setMinistros(data || []);
     } catch {
-      showAlert('Erro ao carregar ministros', 'error');
+      setAlertMessage('Erro ao carregar ministros');
+      setAlertVariant('error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadInitialMinistros = async () => {
+      try {
+        const data = await MinistroService.getAllMinistros();
+        if (isMounted) setMinistros(data || []);
+      } catch {
+        if (isMounted) {
+          setAlertMessage('Erro ao carregar ministros');
+          setAlertVariant('error');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadInitialMinistros();
+    return () => { isMounted = false; };
+  }, []);
 
   const showAlert = (msg: string, variant: 'success' | 'error') => {
     setAlertMessage(msg);
@@ -77,8 +98,8 @@ export const MinistrosPage: React.FC = () => {
       await loadMinistros();
       setIsModalOpen(false);
       resetForm();
-    } catch (error: any) {
-      showAlert(error?.response?.data?.message || 'Erro ao salvar ministro', 'error');
+    } catch (error: unknown) {
+      showAlert(getErrorMessage(error, 'Erro ao salvar ministro'), 'error');
     }
   };
 

@@ -50,7 +50,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900 transition-colors duration-300">
       <RenderNotice />
       {/* Header */}
-      <header className="bg-white dark:bg-neutral-850 shadow-sm border-b border-slate-200 dark:border-neutral-700 sticky top-0 z-40 transition-colors duration-300">
+      <header className="bg-white dark:bg-neutral-850 shadow-xs border-b border-slate-200 dark:border-neutral-700 sticky top-0 z-40 transition-colors duration-300">
         <div className="px-4 py-4 flex items-center justify-between">
           <a href="#skip-to-main" className="skip-to-content">
             Ir para conteúdo principal

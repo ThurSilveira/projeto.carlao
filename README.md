@@ -1,185 +1,280 @@
 # Escala Ministerial
 
-Sistema de gestão de escalas de ministros da eucaristia — backend FastAPI (Python), frontend React e apps mobile Android/iOS.
+[![CI/CD](https://github.com/ThurSilveira/projeto.carlao/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/ThurSilveira/projeto.carlao/actions/workflows/ci-cd.yml)
 
-**Status de produção:** ✅ Backend deployed em Render, mobile clients sincronizados com API REST.
+Sistema web para administrar ministros, eventos, escalas, indisponibilidades,
+substituições, feedbacks e registros de auditoria.
 
----
+## Produção
 
-## Estrutura do repositório
+| Componente | Plataforma | Endereço |
+|---|---|---|
+| Frontend | Vercel | [escala-ministerial.vercel.app](https://escala-ministerial.vercel.app) |
+| Backend | Render | [escala-ministerial-api.onrender.com](https://escala-ministerial-api.onrender.com/api/public/health) |
+| API Docs | Render | [OpenAPI/Swagger](https://escala-ministerial-api.onrender.com/api/docs) |
+| Banco | Render PostgreSQL | Acesso privado pelo backend |
 
-```
-pj_bc/
-├── backend/        # API REST — FastAPI 0.104+ · Python 3.12 · SQLAlchemy · PostgreSQL
-├── frontend/       # Web — React 18 · Vite · TypeScript · Tailwind CSS
-├── android/        # App Android — Kotlin · Compose · Hilt · Retrofit (multi-módulo)
-├── ios/            # App iOS — Swift · SwiftUI · URLSession
-│
-├── Dockerfile      # Build multi-stage para deploy no Render
-├── render.yaml     # Blueprint do Render para deploy automático com 1 clique
-├── Procfile        # Comando de start legado (Heroku-style compatibility)
-|
-│
-├── .env            # Variáveis de ambiente locais (gitignored)
-├── .gitignore
-```
+O PostgreSQL atual usa o plano gratuito do Render e tinha expiração informada
+para 19/09/2026. Confirme o estado do recurso antes de depender de dados de
+produção.
 
----
+## Arquitetura
 
-## Plataformas
-
-| Camada    | Stack principal                               | URL/Deploy                           |
-|-----------|-----------------------------------------------|--------------------------------------|
-| Backend   | FastAPI · Python 3.12 · SQLAlchemy · Pydantic | https://escala-ministerial-api.onrender.com/api |
-| Frontend  | React 18 · Vite · Tailwind · Axios            | Vercel (free)                       |
-| Android   | Kotlin · Compose · Hilt · Retrofit            | Alvo: backend Render                |
-| iOS       | Swift · SwiftUI · URLSession · Codable        | Alvo: backend Render                |
-| Banco     | PostgreSQL 15+                                | Render managed (free tier)          |
-
-
----
-
-## Variáveis de ambiente necessárias (backend)
-
-| Variável               | Descrição                                     | Padrão/Exemplo         |
-|------------------------|-----------------------------------------------|------------------------|
-| `DATABASE_URL`         | PostgreSQL URL (Render normalizará para SQLAlchemy) | `postgres://user:pass@host/db` |
-| `CORS_ORIGINS`         | Origins permitidos (separados por vírgula)    | `*` (local), domínio (prod)        |
-| `ENVIRONMENT`          | `development` ou `production`                 | `production`                       |
-| `PORT`                 | Porta do servidor                             | `8000`                             |
-
-Copie `.env.example` para `.env` e preencha localmente. Render injeta as variáveis automaticamente.
-
----
-
-## Backend — Estrutura
-
-```
-backend/
-├── Dockerfile                  # Build multi-stage (Python 3.12 slim → runtime)
-├── requirements.txt            # Dependências Python (FastAPI, SQLAlchemy, psycopg2, etc.)
-│
-└── app/
-    ├── main.py                 # Ponto de entrada FastAPI, rotas, CORS, lifespan
-    ├── database.py             # Engine SQLAlchemy, normalização de DATABASE_URL do Render
-    ├── models.py               # ORM models (Ministro, Evento, Escala, etc.)
-    ├── schemas.py              # Pydantic schemas (request/response, validação, camelCase)
-    │
-    ├── routers/
-    │   ├── health.py           # GET /api/public/health — healthcheck Render
-    │   ├── ministros.py        # CRUD ministros + indisponibilidades
-    │   ├── eventos.py          # CRUD eventos + cancelar
-    │   ├── escalas.py          # Gerar/aprovar/cancelar escalas
-    │   ├── feedbacks.py        # Listar/responder feedbacks
-    │   ├── auditoria.py        # Histórico de ações (audit log)
-    │   ├── indisponibilidades.py # Gerenciar indisponibilidades de ministros
-    │   └── seed.py             # Endpoints de seed (@ENVIRONMENT=development only)
-    │
-    ├── services/
-    │   ├── ministro_service.py      # Lógica de negócio — ministros
-    │   ├── evento_service.py        # Lógica de negócio — eventos (com audit)
-    │   ├── escala_service.py        # Lógica de negócio — escalas (com audit)
-    │   ├── auditoria_service.py     # Listar/criar audit logs
-    │   └── indisponibilidade_service.py # Lógica de indisponibilidades
-    │
-    └── seed.py                 # Dados de teste para populate inicial
-    │   │   │
-    │   │   ├── service/                             # Regras de negócio
-    │   │   │   ├── MinistroService.java             # Valida duplicatas, ativa/desativa ministros
-    │   │   │   ├── EventoService.java               # Valida datas, cancela eventos com cascata
-    │   │   │   ├── EscalaService.java               # Algoritmo de geração automática (ordena por carga mensal, sorteia disponíveis)
-    │   │   │   ├── FeedbackService.java             # Salva resposta e muda status para RESPONDIDO
-    │   │   │   ├── IndisponibilidadeService.java    # Controla períodos de indisponibilidade por ministro
-    │   │   │   └── LogAuditoriaService.java         # Grava log a cada ação relevante no sistema
-    │   │   │
-    │   │   ├── repository/                          # Interfaces JPA — queries ao banco
-    │   │   │   ├── MinistroRepository.java
-    │   │   │   ├── EventoRepository.java
-    │   │   │   ├── EscalaRepository.java
-    │   │   │   ├── EscalaMinistroRepository.java    # Tabela de junção Escala ↔ Ministro
-    │   │   │   ├── FeedbackRepository.java
-    │   │   │   ├── IndisponibilidadeRepository.java
-    │   │   │   └── LogAuditoriaRepository.java
-    │   │   │
-    │   │   ├── model/                               # Entidades JPA (mapeadas para tabelas do banco)
-    │   │   │   ├── Ministro.java
-    │   │   │   ├── Evento.java
-    │   │   │   ├── Escala.java
-    │   │   │   ├── EscalaMinistro.java              # Linha da tabela de junção (inclui função e confirmação)
-    │   │   │   ├── Feedback.java
-    │   │   │   ├── Indisponibilidade.java
-    │   │   │   ├── LogAuditoria.java
-    │   │   │   └── enums/
-    │   │   │       ├── FuncaoMinistro.java          # MINISTRO_ORDINARIO, ACÓLITO, …
-    │   │   │       ├── StatusEscala.java            # PROPOSTA, APROVADA, CONFIRMADA, CANCELADA
-    │   │   │       ├── StatusFeedback.java          # PENDENTE, RESPONDIDO, ARQUIVADO
-    │   │   │       ├── TipoAcao.java                # CRIADO, ATUALIZADO, APROVADO, CANCELADO, …
-    │   │   │       └── TipoEvento.java              # MISSA_PAROQUIAL, CASAMENTO, BATISMO, OUTRO, …
-    │   │   │
-    │   │   └── dto/                                 # Objetos de transferência (o que a API recebe/retorna)
-    │   │       ├── MinistroDTO.java
-    │   │       ├── EventoDTO.java
-    │   │       ├── EscalaDTO.java
-    │   │       ├── EscalaMinistroDTO.java
-    │   │       ├── FeedbackDTO.java
-    │   │       ├── IndisponibilidadeDTO.java
-    │   │       └── LogAuditoriaDTO.java
-    │   │
-    │   └── resources/
-    │       ├── application.properties               # Config base: porta, JPA DDL, logging
-    │       ├── application-local.properties         # Sobrescreve para dev local: banco H2 ou Postgres local
-    │       ├── application-h2.properties            # Config do banco H2 em memória (testes rápidos)
-    │       └── META-INF/spring.factories            # Registro de auto-configurações customizadas
-    │
-    └── test/
-        └── java/com/exemplo/escala/service/
-            ├── EscalaServiceTest.java               # Testes unitários do algoritmo de geração de escalas
-            └── SimulacaoEscalasMain.java            # Script standalone para simular a geração manualmente
+```text
+Navegador
+   │
+   ▼
+React 19 + TypeScript + Vite 8 (Vercel)
+   │ HTTPS / JSON camelCase
+   ▼
+FastAPI + Pydantic + SQLAlchemy (Render/Docker)
+   │ SSL
+   ▼
+PostgreSQL gerenciado (Render)
 ```
 
----
+O frontend concentra as chamadas HTTP em `frontend/src/services/api.ts`. No
+backend, routers tratam HTTP, schemas validam contratos, services concentram as
+regras de negócio e models representam a persistência.
 
-## Frontend — estrutura detalhada
+## Estrutura da `main`
 
+```text
+.
+├── .github/
+│   ├── workflows/ci-cd.yml    # Qualidade, Docker e deploy de produção
+│   └── dependabot.yml         # Atualizações semanais de dependências
+├── backend/
+│   ├── app/
+│   │   ├── routers/           # Endpoints FastAPI
+│   │   ├── services/          # Regras de negócio e auditoria
+│   │   ├── database.py        # Engine e sessões SQLAlchemy
+│   │   ├── models.py          # Modelos ORM
+│   │   ├── schemas.py         # Contratos Pydantic/camelCase
+│   │   └── main.py            # Aplicação e middleware
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/        # Componentes reutilizáveis
+│   │   ├── hooks/             # Hooks React
+│   │   ├── pages/             # Telas da aplicação
+│   │   ├── services/          # Cliente Axios
+│   │   ├── utils/             # Datas e tratamento de erros
+│   │   ├── App.tsx            # Rotas da SPA
+│   │   └── main.tsx           # Entrada React
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── eslint.config.js
+│   ├── vercel.json
+│   └── package.json
+├── render.yaml                # Infraestrutura do backend no Render
+└── Procfile                   # Compatibilidade de execução
 ```
-frontend/
-├── index.html              # HTML raiz — ponto de entrada do Vite
-├── vite.config.ts          # Config do bundler: alias @/ → src/, proxy de dev
-├── tsconfig.json           # Config TypeScript do código da aplicação
-├── tsconfig.node.json      # Config TypeScript para os arquivos de config do Vite
-├── tailwind.config.js      # Tema personalizado (cores primary, dark mode class-based)
-├── postcss.config.js       # Habilita Tailwind e Autoprefixer no pipeline CSS
-├── vercel.json             # Rewrite SPA: toda rota → index.html (evita 404 no refresh)
-├── package.json            # Dependências e scripts npm
-├── package-lock.json       # Lock de versões exatas das dependências
-│
-└── src/
-    ├── main.tsx            # Monta o React, define as rotas (React Router) e envolve no ThemeProvider
-    ├── index.css           # Estilos globais e diretivas @tailwind
-    ├── vite-env.d.ts       # Tipos do import.meta.env gerados pelo Vite
-    ├── types.ts            # Todas as interfaces TypeScript e enums (Ministro, Evento, Escala, …)
-    │
-    ├── services/
-    │   └── api.ts          # Cliente Axios + todos os serviços REST (MinistroService, EventoService, …)
-    │                       # Timeout de 60s para aguentar cold-start do Render
-    │
-    ├── utils/
-    │   └── date.ts         # parseLocalDate / formatDate — corrige bug de fuso horário em strings de data
-    │
-    ├── hooks/
-    │   └── useTheme.ts     # Hook que lê/escreve o tema (light/dark) no localStorage
-    │
-    ├── components/
-    │   ├── Layout.tsx      # Shell da aplicação: sidebar, topbar, slot de conteúdo, toggle de tema
-    │   ├── ui.tsx          # Biblioteca interna de componentes: Button, Card, Badge, Modal,
-    │   │                   # Input, Select, Alert, Spinner — todos com suporte a dark mode
-    │   └── ErrorBoundary.tsx # Captura erros de renderização e exibe tela de fallback
-    │
-    └── pages/              # Uma página por rota
-        ├── Dashboard.tsx   # Visão geral: contadores, próximos eventos, feedbacks recentes
-        ├── Ministros.tsx   # CRUD de ministros + ativar/desativar + indisponibilidades
-        ├── Eventos.tsx     # CRUD de eventos + cancelar
-        ├── Escalas.tsx     # Listar escalas, gerar automaticamente, aprovar/cancelar/deletar
-        ├── Feedback.tsx    # Listar feedbacks, filtrar por status, responder
-        └── Auditoria.tsx   # Tabela de logs de auditoria com filtro por entidade e ação
+
+Android, iOS e backend Java não fazem parte da `main`. Essas versões estão
+preservadas e congeladas na branch `versoes-futuras-congeladas`.
+
+## Tecnologias
+
+### Frontend
+
+- React 19.2;
+- React Router 7;
+- TypeScript 6;
+- Vite 8;
+- Tailwind CSS 4 com plugin oficial do Vite;
+- Axios 1.19;
+- ESLint 10 com regras para TypeScript, Hooks e Fast Refresh.
+
+### Backend
+
+- Python 3.12;
+- FastAPI;
+- Pydantic 2;
+- SQLAlchemy 2;
+- PostgreSQL e `psycopg2`;
+- Uvicorn.
+
+### Infraestrutura
+
+- GitHub Actions para CI/CD;
+- Docker para validar os dois componentes;
+- Vercel para a SPA;
+- Render para API e PostgreSQL;
+- Dependabot para npm, pip, Docker e GitHub Actions.
+
+## Executar localmente
+
+### Pré-requisitos
+
+- Node.js 24 recomendado;
+- npm 11 ou compatível com o lockfile v3;
+- Python 3.12;
+- PostgreSQL;
+- Docker opcional.
+
+### Backend
+
+```bash
+cd backend
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8080 --env-file .env
 ```
+
+Health check:
+
+```bash
+curl --fail http://127.0.0.1:8080/api/public/health
+```
+
+### Frontend
+
+Em outro terminal:
+
+```bash
+cd frontend
+npm ci
+cp .env.example .env
+npm run dev -- --host 127.0.0.1 --open=false
+```
+
+A aplicação fica em `http://127.0.0.1:3000` e usa, por padrão,
+`http://localhost:8080/api`.
+
+### Checks locais
+
+```bash
+cd frontend
+npm run check
+npm audit --audit-level=moderate
+```
+
+No backend:
+
+```bash
+cd backend
+python -m pip check
+python -m compileall -q app
+```
+
+## Docker
+
+Construir as duas imagens a partir da raiz:
+
+```bash
+docker build -t escala-ministerial-api ./backend
+docker build \
+  --build-arg VITE_API_URL=https://escala-ministerial-api.onrender.com/api \
+  -t escala-ministerial-web ./frontend
+```
+
+Executar o frontend estático:
+
+```bash
+docker run --rm -p 8081:8080 escala-ministerial-web
+```
+
+O contêiner do backend requer `DATABASE_URL` e as demais variáveis do ambiente.
+Não passe credenciais diretamente em comandos que possam ficar no histórico do
+shell; prefira um arquivo local ignorado pelo Git ou um gerenciador de secrets.
+
+## Variáveis de ambiente
+
+### Backend
+
+| Variável | Obrigatória | Descrição |
+|---|---:|---|
+| `DATABASE_URL` | Sim | Conexão PostgreSQL |
+| `DB_SSL` | Produção | Ativa SSL quando `true` |
+| `DB_SSLMODE` | Não | Sobrescreve o modo SSL |
+| `CORS_ORIGINS` | Sim | Origens web permitidas, separadas por vírgula |
+| `ENVIRONMENT` | Sim | `development` ou `production` |
+| `PORT` | Plataforma | Porta do servidor, padrão `8080` |
+
+### Frontend
+
+| Variável | Obrigatória | Descrição |
+|---|---:|---|
+| `VITE_API_URL` | Produção | URL base da API, incluindo `/api` |
+| `VITE_ENV` | Não | Identificação do ambiente |
+
+Variáveis `VITE_*` são incorporadas ao bundle e, portanto, não podem conter
+segredos.
+
+## API
+
+Todos os recursos usam o prefixo `/api`:
+
+- `/ministros`: CRUD de ministros;
+- `/eventos`: CRUD e cancelamento de eventos;
+- `/escalas`: geração, preview, aprovação, substituição e cancelamento;
+- `/ministros/{id}/indisponibilidades`: gestão de indisponibilidades;
+- `/feedbacks`: criação, listagem e resposta;
+- `/auditoria`: consulta de logs;
+- `/public/health`: health check;
+- `/seed`: disponível somente com `ENVIRONMENT=development`.
+
+Os schemas usam nomes Python em `snake_case` internamente e JSON em `camelCase`
+para o frontend.
+
+## CI/CD
+
+O workflow `.github/workflows/ci-cd.yml` roda em pull requests e pushes para
+`main`.
+
+```text
+Push/PR
+  ├─ Frontend: npm ci -> lint -> typecheck -> build -> audit
+  ├─ Backend: pip check -> compileall -> PostgreSQL -> API smoke test
+  └─ Docker: build frontend + build backend
+                  │
+                  └─ push na main e todos os checks verdes
+                       ├─ Vercel CLI: pull -> build -> deploy --prebuilt
+                       └─ Render API: deploy do commit exato -> aguarda live -> health
+```
+
+Deploys automáticos diretos por Git estão desativados nas duas plataformas. A
+Vercel usa `git.deploymentEnabled: false`; o Render usa
+`autoDeployTrigger: off`. Isso impede publicação antes do CI.
+
+### GitHub Secrets necessários
+
+Configure em `Settings > Secrets and variables > Actions`:
+
+| Secret | Uso |
+|---|---|
+| `VERCEL_TOKEN` | Autentica o Vercel CLI |
+| `VERCEL_ORG_ID` | Identifica o usuário/time Vercel |
+| `VERCEL_PROJECT_ID` | Identifica o projeto Vercel |
+| `RENDER_API_KEY` | Autentica a API do Render |
+| `RENDER_SERVICE_ID` | Identifica o serviço do backend |
+
+Nunca salve os valores no repositório. O pipeline verifica apenas se eles
+existem e o GitHub mascara seu uso nos logs.
+
+## Segurança e limitações atuais
+
+- o backend ainda não implementa autenticação e autorização;
+- os dados incluem informações pessoais e devem ser tratados conforme a LGPD;
+- produção restringe CORS ao domínio oficial da Vercel;
+- `/api/seed` não é montado em produção;
+- tabelas ainda são criadas por `Base.metadata.create_all`; migrations
+  versionadas continuam sendo uma dívida técnica;
+- o banco gratuito requer acompanhamento de expiração, backup e migração.
+
+Não use a API para dados sensíveis ou múltiplos administradores antes de
+implementar autenticação, autorização por papéis e uma política de retenção.
+
+## Branches
+
+- `main`: aplicação web ativa e infraestrutura;
+- `versoes-futuras-congeladas`: Android, iOS e backend Java preservados;
+- branches de feature/fix: devem abrir PR para `main` e passar pelo CI.
+
+Commits, pushes e deploys devem conter somente alterações revisadas. Confira
+`git status`, `git diff`, lint, build, Docker e auditoria antes de publicar.

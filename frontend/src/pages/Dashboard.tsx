@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MinistroService, EventoService, EscalaService, FeedbackService } from '@/services/api';
-import { Card, Badge, Spinner } from '@/components/ui';
+import { Card, Badge } from '@/components/ui';
 import { Ministro, Evento, Escala, Feedback } from '@/types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -88,7 +88,7 @@ export const Dashboard: React.FC = () => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label} className="flex items-center gap-4">
-              <div className={`${stat.color} p-3 rounded-lg flex-shrink-0`}>
+              <div className={`${stat.color} p-3 rounded-lg shrink-0`}>
                 <Icon size={24} />
               </div>
               <div>

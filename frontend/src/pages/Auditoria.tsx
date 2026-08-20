@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LogAuditoriaService } from '@/services/api';
 import { Card, Badge, Spinner, Select, Alert } from '@/components/ui';
 import { LogAuditoria, TipoAcao } from '@/types';
@@ -12,18 +12,23 @@ export const AuditoriaPage: React.FC = () => {
   const [filterEntidade, setFilterEntidade] = useState('');
   const [filterAcao, setFilterAcao] = useState('');
 
-  useEffect(() => { loadLogs(); }, []);
+  useEffect(() => {
+    let isMounted = true;
 
-  const loadLogs = async () => {
-    try {
-      setLoading(true);
-      setLogs(await LogAuditoriaService.getLogs());
-    } catch {
-      setAlertMessage('Erro ao carregar logs de auditoria');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const loadInitialLogs = async () => {
+      try {
+        const data = await LogAuditoriaService.getLogs();
+        if (isMounted) setLogs(data);
+      } catch {
+        if (isMounted) setAlertMessage('Erro ao carregar logs de auditoria');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadInitialLogs();
+    return () => { isMounted = false; };
+  }, []);
 
   const filteredLogs = logs.filter((log) => {
     const matchesEntidade = !filterEntidade || log.entidade === filterEntidade;

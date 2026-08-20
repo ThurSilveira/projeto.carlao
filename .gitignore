@@ -102,6 +102,7 @@ Pods/
 
 # Node.js / Frontend
 node_modules/
+.npm/
 .pnp
 .pnp.js
 /coverage
@@ -109,6 +110,9 @@ dist/
 out/
 .nuxt/
 .next/
+.vercel/
+.eslintcache
+*.tsbuildinfo
 
 # Build artifacts (multi-platform)
 *.o
@@ -146,6 +150,9 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
 
 # Database
 *.db
@@ -165,6 +172,8 @@ dump.sql
 terraform.tfstate*
 
 # Secrets & Credentials
+.secrets/
+*.secret
 .credentials
 credentials.json
 secret.key
@@ -172,6 +181,12 @@ private.key
 *.pem
 *.key
 
+# Local deployment output
+deployment-url.txt
+
 # Project-specific
 .claude/*
 RODAR_LOCAL.txt
+
+# Local guidance for LLM coding agents
+LLM_CONTEXT.md

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { EscalaService, EventoService } from '@/services/api';
 import { Card, Badge, Spinner, Button, Modal, Select, Alert } from '@/components/ui';
 import { Escala, EscalaMinistro, Evento, StatusEscala, PreviewEscala, MinistroSituacao } from '@/types';
 import { CheckCircle, XCircle, Zap, Users, Trash2, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/utils/date';
+import { getErrorMessage } from '@/utils/error';
 
 export const EscalasPage: React.FC = () => {
   const [escalas, setEscalas] = useState<Escala[]>([]);
@@ -36,11 +37,8 @@ export const EscalasPage: React.FC = () => {
   const [escalasGerada, setEscalaGerada] = useState<Escala | null>(null);
   const [isSubstituirOpen, setIsSubstituirOpen] = useState(false);
   const [escalaParaSubstituir, setEscalaParaSubstituir] = useState<Escala | null>(null);
-  const [substituirLoading, setSubstituirLoading] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [escalasData, eventosData] = await Promise.all([
@@ -50,11 +48,39 @@ export const EscalasPage: React.FC = () => {
       setEscalas(escalasData);
       setEventos(eventosData);
     } catch {
-      showAlert('Erro ao carregar escalas', 'error');
+      setAlertMessage('Erro ao carregar escalas');
+      setAlertVariant('error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadInitialData = async () => {
+      try {
+        const [escalasData, eventosData] = await Promise.all([
+          EscalaService.getAllEscalas(),
+          EventoService.getAllEventos(),
+        ]);
+        if (isMounted) {
+          setEscalas(escalasData);
+          setEventos(eventosData);
+        }
+      } catch {
+        if (isMounted) {
+          setAlertMessage('Erro ao carregar escalas');
+          setAlertVariant('error');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadInitialData();
+    return () => { isMounted = false; };
+  }, []);
 
   const showAlert = (msg: string, variant: 'success' | 'error') => {
     setAlertMessage(msg);
@@ -70,8 +96,8 @@ export const EscalasPage: React.FC = () => {
       setEmpatadosSelecionados(new Set(prev.selecionadosAuto));
       setIsGerarOpen(false);
       setIsPreviewOpen(true);
-    } catch (err: any) {
-      showAlert(err?.response?.data?.detail || 'Erro ao pré-visualizar escala', 'error');
+    } catch (error: unknown) {
+      showAlert(getErrorMessage(error, 'Erro ao pré-visualizar escala'), 'error');
     } finally {
       setPreviewLoading(false);
     }
@@ -97,8 +123,8 @@ export const EscalasPage: React.FC = () => {
       setGerarEventoId(0);
       setEscalaGerada(resultado);
       await loadData();
-    } catch (err: any) {
-      showAlert(err?.response?.data?.detail || 'Erro ao gerar escala', 'error');
+    } catch (error: unknown) {
+      showAlert(getErrorMessage(error, 'Erro ao gerar escala'), 'error');
     } finally {
       setConfirmarLoading(false);
     }
@@ -163,8 +189,8 @@ export const EscalasPage: React.FC = () => {
       setSubstituirPreviewTargetId(ministroId);
       setSubstituirPreviewSelectedId(prev.selecionadosAuto[0] ?? null);
       setIsSubstituirPreviewOpen(true);
-    } catch (err: any) {
-      showAlert(err?.response?.data?.detail || 'Erro ao pré-visualizar substituição', 'error');
+    } catch (error: unknown) {
+      showAlert(getErrorMessage(error, 'Erro ao pré-visualizar substituição'), 'error');
       setIsSubstituirOpen(true);
     } finally {
       setSubstituirPreviewLoading(false);
@@ -203,8 +229,8 @@ export const EscalasPage: React.FC = () => {
       showAlert('Substituição realizada com sucesso!', 'success');
       closeSubstituirPreview();
       await loadData();
-    } catch (err: any) {
-      showAlert(err?.response?.data?.detail || err?.message || 'Erro ao confirmar substituição', 'error');
+    } catch (error: unknown) {
+      showAlert(getErrorMessage(error, 'Erro ao confirmar substituição'), 'error');
     } finally {
       setSubstituirPreviewConfirmLoading(false);
     }
@@ -226,9 +252,6 @@ export const EscalasPage: React.FC = () => {
   const substituirPreviewDisponiveis = substituirPreview
     ? [...substituirPreview.definitivos, ...substituirPreview.empatados]
     : [];
-  const substituirPreviewSelectionValid =
-    !substituirPreview?.temEmpate || substituirPreviewSelectedId != null;
-
   // preview validation
   const empatadoCount = empatadosSelecionados.size;
   const vagasNoEmpate = preview?.vagasNoEmpate ?? 0;
@@ -673,7 +696,7 @@ export const EscalasPage: React.FC = () => {
                       size="sm"
                       variant="danger"
                       onClick={() => handleOpenSubstituicaoPreview(escalaParaSubstituir.id!, em.ministroId)}
-                      disabled={substituirLoading || substituirPreviewLoading}
+                      disabled={substituirPreviewLoading}
                     >
                       {substituirPreviewLoading ? <Spinner size="sm" /> : 'Substituir'}
                     </Button>

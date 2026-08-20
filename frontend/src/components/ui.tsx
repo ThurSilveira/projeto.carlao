@@ -47,7 +47,7 @@ interface CardProps {
 }
 
 export const Card: React.FC<CardProps> = ({ className, children, title }) => (
-  <div className={clsx('bg-white dark:bg-neutral-850 rounded-xl shadow-sm border border-slate-200 dark:border-neutral-700 p-6', className)}>
+  <div className={clsx('bg-white dark:bg-neutral-850 rounded-xl shadow-xs border border-slate-200 dark:border-neutral-700 p-6', className)}>
     {title && <h3 className="text-lg font-semibold mb-4 text-slate-900 dark:text-white">{title}</h3>}
     {children}
   </div>
@@ -74,7 +74,7 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'primary', children, cla
   const { pill, dot } = badgeVariantStyles[variant];
   return (
     <span className={clsx('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold', pill, className)}>
-      <span className={clsx('w-1.5 h-1.5 rounded-full flex-shrink-0', dot)} />
+      <span className={clsx('w-1.5 h-1.5 rounded-full shrink-0', dot)} />
       {children}
     </span>
   );
@@ -88,7 +88,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, helperText, className, id, ...props }, ref) => {
-    const inputId = id || `input-${Math.random()}`;
+    const generatedId = React.useId();
+    const inputId = id ?? `input-${generatedId}`;
 
     return (
       <div className="flex flex-col gap-1">
@@ -134,7 +135,8 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, options, className, id, ...props }, ref) => {
-    const selectId = id || `select-${Math.random()}`;
+    const generatedId = React.useId();
+    const selectId = id ?? `select-${generatedId}`;
 
     return (
       <div className="flex flex-col gap-1">
@@ -233,7 +235,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, title, children, onClose, 
   return (
     <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
         role="presentation"
       />

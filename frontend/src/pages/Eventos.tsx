@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { EventoService } from '@/services/api';
 import { Card, Button, Input, Badge, Spinner, Modal, Select, Alert } from '@/components/ui';
 import { Evento, TipoEvento } from '@/types';
@@ -20,18 +20,38 @@ export const EventosPage: React.FC = () => {
     maxMinistros: 6, local: '', cancelado: false,
   });
 
-  useEffect(() => { loadEventos(); }, []);
-
-  const loadEventos = async () => {
+  const loadEventos = useCallback(async () => {
     try {
       setLoading(true);
       setEventos(await EventoService.getAllEventos());
     } catch {
-      showAlert('Erro ao carregar eventos', 'error');
+      setAlertMessage('Erro ao carregar eventos');
+      setAlertVariant('error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadInitialEventos = async () => {
+      try {
+        const data = await EventoService.getAllEventos();
+        if (isMounted) setEventos(data);
+      } catch {
+        if (isMounted) {
+          setAlertMessage('Erro ao carregar eventos');
+          setAlertVariant('error');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadInitialEventos();
+    return () => { isMounted = false; };
+  }, []);
 
   const showAlert = (msg: string, variant: 'success' | 'error') => {
     setAlertMessage(msg);
@@ -56,17 +76,6 @@ export const EventosPage: React.FC = () => {
       resetForm();
     } catch {
       showAlert('Erro ao salvar evento', 'error');
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Tem certeza que deseja deletar este evento?')) return;
-    try {
-      await EventoService.deleteEvento(id);
-      showAlert('Evento deletado com sucesso!', 'success');
-      await loadEventos();
-    } catch {
-      showAlert('Erro ao deletar evento', 'error');
     }
   };
 

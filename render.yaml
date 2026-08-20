@@ -6,12 +6,13 @@ services:
     rootDir: backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/public/health
+    autoDeployTrigger: off
     envVars:
       - key: DATABASE_URL
         sync: false
       - key: DB_SSL
         value: "true"
       - key: CORS_ORIGINS
-        value: "*"
+        value: https://escala-ministerial.vercel.app
       - key: ENVIRONMENT
         value: production

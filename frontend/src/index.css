@@ -1,8 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Playfair+Display:wght@600;700;800&display=swap');
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: #fff8f0;
+  --color-primary-100: #ffddae;
+  --color-primary-200: #f0c07a;
+  --color-primary-300: #e6a550;
+  --color-primary-400: #c07830;
+  --color-primary-500: #875025;
+  --color-primary-600: #583400;
+  --color-primary-700: #432700;
+  --color-primary-800: #2e1a00;
+  --color-primary-900: #1c0a00;
+  --color-primary-950: #0f0800;
+
+  --color-secondary-50: #f0fdfb;
+  --color-secondary-100: #ccfbf1;
+  --color-secondary-200: #99f6e4;
+  --color-secondary-300: #5eead4;
+  --color-secondary-400: #2dd4bf;
+  --color-secondary-500: #14b8a6;
+  --color-secondary-600: #0f766e;
+  --color-secondary-700: #0d6460;
+  --color-secondary-800: #134e4a;
+  --color-secondary-900: #042f2e;
+
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #4d7c0f;
+  --color-success-900: #14532d;
+
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-850: #1e2535;
+  --color-neutral-900: #141927;
+  --color-neutral-950: #0f1421;
+
+  --font-sans: "Nunito", system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1rem;
+  --radius-pill: 9999px;
+}
 
 @layer base {
   html {
@@ -34,85 +88,8 @@
 }
 
 @layer components {
-  .btn-primary {
-    @apply px-4 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
-  }
-
-  .btn-secondary {
-    @apply px-4 py-2 bg-secondary-100 text-secondary-600 rounded-lg font-semibold hover:bg-secondary-200 dark:bg-secondary-800 dark:text-secondary-300 dark:hover:bg-secondary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
-  }
-
-  .btn-danger {
-    @apply px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
-  }
-
-  .input-field {
-    @apply w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 dark:text-white dark:bg-neutral-850 dark:border-neutral-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 disabled:bg-slate-100 dark:disabled:bg-neutral-800 disabled:cursor-not-allowed transition-colors;
-  }
-
-  .card {
-    @apply bg-white dark:bg-neutral-850 rounded-xl shadow-sm border border-slate-200 dark:border-neutral-700 p-6;
-  }
-
-  /* StatusBadge — pill + colored dot */
-  .badge {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-xs font-semibold;
-  }
-
-  .badge::before {
-    content: '';
-    @apply w-1.5 h-1.5 rounded-full flex-shrink-0;
-  }
-
-  .badge-primary {
-    @apply badge bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-200;
-  }
-  .badge-primary::before { @apply bg-primary-600; }
-
-  .badge-secondary {
-    @apply badge bg-secondary-100 text-secondary-600 dark:bg-secondary-800 dark:text-secondary-300;
-  }
-  .badge-secondary::before { @apply bg-secondary-600; }
-
-  .badge-success {
-    @apply badge bg-success-100 text-success-600 dark:bg-success-900 dark:text-green-300;
-  }
-  .badge-success::before { @apply bg-success-600; }
-
-  .badge-warning {
-    @apply badge bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300;
-  }
-  .badge-warning::before { @apply bg-amber-600; }
-
-  .badge-danger {
-    @apply badge bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300;
-  }
-  .badge-danger::before { @apply bg-red-600; }
-
-  .badge-info {
-    @apply badge bg-info-100 text-info-600 dark:bg-blue-900/40 dark:text-blue-300;
-  }
-  .badge-info::before { @apply bg-info-600; }
-
-  .badge-neutral {
-    @apply badge bg-neutral-200 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300;
-  }
-  .badge-neutral::before { @apply bg-neutral-500; }
-
-  .section-title {
-    @apply text-2xl font-bold text-slate-900 dark:text-white mb-4 font-serif;
-  }
-
   .skip-to-content {
     @apply absolute left-0 top-0 z-50 -translate-y-full px-4 py-2 bg-primary-600 text-white focus-visible:translate-y-0;
-  }
-
-  .text-muted {
-    @apply text-slate-600 dark:text-slate-300;
-  }
-
-  .text-label {
-    @apply text-slate-700 dark:text-slate-200 font-medium;
   }
 }
 

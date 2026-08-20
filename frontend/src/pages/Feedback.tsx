@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FeedbackService } from '@/services/api';
 import { Card, Badge, Spinner, Button, Modal, Select, Alert } from '@/components/ui';
 import { Feedback, StatusFeedback } from '@/types';
@@ -15,18 +15,38 @@ export const FeedbackPage: React.FC = () => {
   const [reply, setReply] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
-  useEffect(() => { loadFeedbacks(); }, []);
-
-  const loadFeedbacks = async () => {
+  const loadFeedbacks = useCallback(async () => {
     try {
       setLoading(true);
       setFeedbacks(await FeedbackService.getAllFeedbacks());
     } catch {
-      showAlert('Erro ao carregar feedbacks', 'error');
+      setAlertMessage('Erro ao carregar feedbacks');
+      setAlertVariant('error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadInitialFeedbacks = async () => {
+      try {
+        const data = await FeedbackService.getAllFeedbacks();
+        if (isMounted) setFeedbacks(data);
+      } catch {
+        if (isMounted) {
+          setAlertMessage('Erro ao carregar feedbacks');
+          setAlertVariant('error');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void loadInitialFeedbacks();
+    return () => { isMounted = false; };
+  }, []);
 
   const showAlert = (msg: string, variant: 'success' | 'error') => {
     setAlertMessage(msg);
