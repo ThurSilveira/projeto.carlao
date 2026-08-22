@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { LogAuditoriaService } from '@/services/api';
 import { Card, Badge, Spinner, Select, Alert } from '@/components/ui';
 import { LogAuditoria, TipoAcao } from '@/types';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatBrasiliaDateTime } from '@/utils/date';
 
 export const AuditoriaPage: React.FC = () => {
   const [logs, setLogs] = useState<LogAuditoria[]>([]);
@@ -129,7 +128,7 @@ export const AuditoriaPage: React.FC = () => {
                     <div>
                       <p className="text-slate-600 dark:text-slate-400">Data/Hora</p>
                       <p className="font-medium text-slate-900 dark:text-white">
-                        {format(new Date(log.dataHora), 'dd/MM/yyyy HH:mm:ss', { locale: ptBR })}
+                        {formatBrasiliaDateTime(log.dataHora)}
                       </p>
                     </div>
                   </div>
