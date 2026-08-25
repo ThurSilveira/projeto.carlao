@@ -1,5 +1,56 @@
-node_modules
-# Keep environment variables out of version control
-.env
+# Dependencies
+node_modules/
 
-/src/generated/prisma
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Generated Prisma Client
+/src/generated/
+
+# Local Prisma/SQLite databases
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-shm
+prisma/*.db-wal
+
+# Tests and coverage
+coverage/
+.nyc_output/
+
+# Logs and runtime files
+logs/
+*.log
+*.pid
+*.pid.lock
+
+# Tool caches and temporary files
+.cache/
+.eslintcache
+.parcel-cache/
+.turbo/
+.tmp/
+tmp/
+temp/
+
+# Editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+*.swp
+*.swo
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
