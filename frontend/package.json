@@ -4,7 +4,7 @@
   "description": "Sistema de Gestão de Escalas de Ministros para Paróquias",
   "type": "module",
   "engines": {
-    "node": ">=20.19.0"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "vite",

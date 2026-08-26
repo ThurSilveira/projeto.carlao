@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Moon, Sun } from 'lucide-react';
+import { KeyRound, LogOut, Menu, Moon, Sun, UserRound, X } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from '@/hooks/useTheme';
-import { Modal, Button } from '@/components/ui';
+import { Alert, Modal, Button } from '@/components/ui';
+import { useAuth } from '@/hooks/useAuth';
+import { getErrorMessage } from '@/utils/error';
 
 const NOTICE_KEY = 'render_cold_start_notice_seen';
 
@@ -30,25 +32,147 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+const AccountModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  const { user, changePassword } = useAuth();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+
+  const close = () => {
+    if (!isSubmitting) {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmation('');
+      setMessage(null);
+      onClose();
+    }
+  };
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage(null);
+    if (newPassword !== confirmation) {
+      setMessage({ kind: 'error', text: 'A confirmação não corresponde à nova senha.' });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmation('');
+      setMessage({ kind: 'success', text: 'Senha alterada. As demais sessões foram encerradas.' });
+    } catch (error) {
+      setMessage({ kind: 'error', text: getErrorMessage(error, 'Não foi possível alterar a senha.') });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} title="Conta e segurança" onClose={close}>
+      <div className="flex items-center gap-3 rounded-lg bg-slate-50 dark:bg-neutral-700 p-3 mb-5">
+        <UserRound className="text-primary-600 dark:text-primary-200" size={22} />
+        <div className="min-w-0">
+          <p className="font-semibold text-slate-900 dark:text-white truncate">{user?.nome}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-300 truncate">{user?.email}</p>
+        </div>
+      </div>
+
+      <form onSubmit={submit} className="space-y-4">
+        <div className="flex items-center gap-2 text-slate-900 dark:text-white font-semibold">
+          <KeyRound size={18} />
+          Alterar senha
+        </div>
+        {message && <Alert variant={message.kind}>{message.text}</Alert>}
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+          Senha atual
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={(event) => setCurrentPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+            maxLength={128}
+            className="mt-1 w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-slate-900 dark:text-white"
+          />
+        </label>
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+          Nova senha
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(event) => setNewPassword(event.target.value)}
+            autoComplete="new-password"
+            required
+            minLength={12}
+            maxLength={128}
+            className="mt-1 w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-slate-900 dark:text-white"
+          />
+          <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">Use uma frase-senha exclusiva com ao menos 12 caracteres.</span>
+        </label>
+        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+          Confirmar nova senha
+          <input
+            type="password"
+            value={confirmation}
+            onChange={(event) => setConfirmation(event.target.value)}
+            autoComplete="new-password"
+            required
+            minLength={12}
+            maxLength={128}
+            className="mt-1 w-full px-3 py-2 border border-slate-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-slate-900 dark:text-white"
+          />
+        </label>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="secondary" onClick={close} disabled={isSubmitting}>Cancelar</Button>
+          <Button type="submit" isLoading={isSubmitting}>Salvar nova senha</Button>
+        </div>
+      </form>
+    </Modal>
+  );
+};
+
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
   const [isDarkMode, toggleTheme] = useTheme();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
-  const navItems = [
-    { label: 'Dashboard', href: '/', icon: '📊' },
-    { label: 'Ministros', href: '/ministros', icon: '👥' },
-    { label: 'Eventos', href: '/eventos', icon: '📅' },
-    { label: 'Escalas', href: '/escalas', icon: '📋' },
-    { label: 'Feedback', href: '/feedback', icon: '💬' },
-    { label: 'Auditoria', href: '/auditoria', icon: '📝' },
-  ];
+  const navItems = user?.perfil === 'MINISTRO'
+    ? [
+        { label: 'Meu calendário', href: '/meu-calendario', icon: '📅' },
+        { label: 'Indisponibilidades', href: '/minhas-indisponibilidades', icon: '🚫' },
+        { label: 'Feedback', href: '/meus-feedbacks', icon: '💬' },
+      ]
+    : [
+        { label: 'Dashboard', href: '/', icon: '📊' },
+        { label: 'Ministros', href: '/ministros', icon: '👥' },
+        { label: 'Eventos', href: '/eventos', icon: '📅' },
+        { label: 'Escalas', href: '/escalas', icon: '📋' },
+        { label: 'Feedback', href: '/feedback', icon: '💬' },
+        { label: 'Auditoria', href: '/auditoria', icon: '📝' },
+      ].filter((item) => item.href !== '/auditoria' || user?.perfil !== 'CONSULTA');
 
   const isActive = (href: string) => location.pathname === href;
+
+  const handleLogout = async () => {
+    setLogoutError('');
+    try {
+      await logout();
+    } catch (error) {
+      setLogoutError(getErrorMessage(error, 'Não foi possível encerrar a sessão. Tente novamente.'));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900 transition-colors duration-300">
       <RenderNotice />
+      <AccountModal isOpen={isAccountOpen} onClose={() => setIsAccountOpen(false)} />
       {/* Header */}
       <header className="bg-white dark:bg-neutral-850 shadow-xs border-b border-slate-200 dark:border-neutral-700 sticky top-0 z-40 transition-colors duration-300">
         <div className="px-4 py-4 flex items-center justify-between">
@@ -89,6 +213,27 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           {/* Right Actions */}
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setIsAccountOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 text-left"
+              aria-label="Abrir conta e segurança"
+            >
+              <span className="size-8 rounded-full bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-100 flex items-center justify-center">
+                <UserRound size={17} />
+              </span>
+              <span className="hidden xl:block max-w-32">
+                <span className="block text-xs font-semibold text-slate-800 dark:text-white truncate">{user?.nome}</span>
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400">
+                  {user?.perfil === 'ADMINISTRADOR'
+                    ? 'Administrador'
+                    : user?.perfil === 'COORDENADOR'
+                      ? 'Coordenador'
+                      : user?.perfil === 'MINISTRO'
+                        ? 'Ministro'
+                        : 'Consulta'}
+                </span>
+              </span>
+            </button>
+            <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
               aria-label={isDarkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
@@ -96,6 +241,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               {isDarkMode
                 ? <Sun size={20} className="text-amber-400" />
                 : <Moon size={20} className="text-slate-600" />}
+            </button>
+
+            <button
+              onClick={() => void handleLogout()}
+              className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+              aria-label="Encerrar sessão"
+              title="Encerrar sessão"
+            >
+              <LogOut size={20} />
             </button>
 
             {/* Mobile Menu Button */}
@@ -135,6 +289,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </nav>
         )}
       </header>
+
+      {logoutError && (
+        <div className="container mx-auto px-4 pt-4">
+          <Alert variant="error" onClose={() => setLogoutError('')}>{logoutError}</Alert>
+        </div>
+      )}
 
       {/* Main Content */}
       <main id="skip-to-main" className="container mx-auto px-4 py-8">

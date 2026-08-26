@@ -1,7 +1,12 @@
-from datetime import date, datetime
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String
+from datetime import UTC, date, datetime
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
+
+
+def utcnow_naive() -> datetime:
+    """UTC sem timezone para compatibilidade com as colunas DateTime existentes."""
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class Ministro(Base):
@@ -23,6 +28,12 @@ class Ministro(Base):
     indisponibilidades = relationship("Indisponibilidade", back_populates="ministro", cascade="all, delete-orphan")
     escala_ministros = relationship("EscalaMinistro", back_populates="ministro")
     feedbacks = relationship("Feedback", back_populates="ministro")
+    vinculo_usuario = relationship(
+        "VinculoUsuarioMinistro",
+        back_populates="ministro",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
 
 
 class Evento(Base):
@@ -67,6 +78,12 @@ class EscalaMinistro(Base):
 
     escala = relationship("Escala", back_populates="escala_ministros")
     ministro = relationship("Ministro", back_populates="escala_ministros")
+    sincronizacao_calendario = relationship(
+        "SincronizacaoCalendario",
+        back_populates="escala_ministro",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
 
 
 class Indisponibilidade(Base):
@@ -108,3 +125,85 @@ class LogAuditoria(Base):
     status_novo = Column(String)
     realizado_por_id = Column(String)
     data_hora = Column(DateTime, nullable=False, default=datetime.now)
+
+
+class Usuario(Base):
+    __tablename__ = "usuario"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(120), nullable=False)
+    email = Column(String(254), unique=True, nullable=False, index=True)
+    senha_hash = Column(String(512), nullable=False)
+    ativo = Column(Boolean, nullable=False, default=True)
+    criado_em = Column(DateTime, nullable=False, default=utcnow_naive)
+    atualizado_em = Column(DateTime, nullable=False, default=utcnow_naive, onupdate=utcnow_naive)
+
+    sessoes = relationship("SessaoAutenticacao", back_populates="usuario", cascade="all, delete-orphan")
+    acesso = relationship("AcessoUsuario", back_populates="usuario", cascade="all, delete-orphan", uselist=False)
+    vinculo_ministro = relationship(
+        "VinculoUsuarioMinistro",
+        back_populates="usuario",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+
+class AcessoUsuario(Base):
+    __tablename__ = "acesso_usuario"
+
+    usuario_id = Column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), primary_key=True)
+    perfil = Column(String(30), nullable=False, index=True)
+    protegido = Column(Boolean, nullable=False, default=False)
+
+    usuario = relationship("Usuario", back_populates="acesso")
+
+
+class VinculoUsuarioMinistro(Base):
+    __tablename__ = "vinculo_usuario_ministro"
+
+    usuario_id = Column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), primary_key=True)
+    ministro_id = Column(Integer, ForeignKey("ministro.id", ondelete="CASCADE"), unique=True, nullable=False, index=True)
+
+    usuario = relationship("Usuario", back_populates="vinculo_ministro")
+    ministro = relationship("Ministro", back_populates="vinculo_usuario")
+
+
+class SincronizacaoCalendario(Base):
+    __tablename__ = "sincronizacao_calendario"
+
+    id = Column(Integer, primary_key=True)
+    escala_ministro_id = Column(
+        Integer,
+        ForeignKey("escala_ministro.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    google_event_id = Column(String(255), unique=True)
+    status = Column(String(30), nullable=False, default="PENDENTE", index=True)
+    erro = Column(Text)
+    ultima_tentativa_em = Column(DateTime)
+    atualizado_em = Column(DateTime, nullable=False, default=utcnow_naive, onupdate=utcnow_naive)
+
+    escala_ministro = relationship("EscalaMinistro", back_populates="sincronizacao_calendario")
+
+
+class SessaoAutenticacao(Base):
+    __tablename__ = "sessao_autenticacao"
+
+    id = Column(Integer, primary_key=True)
+    usuario_id = Column(Integer, ForeignKey("usuario.id", ondelete="CASCADE"), nullable=False, index=True)
+    token_hash = Column(String(64), unique=True, nullable=False, index=True)
+    csrf_token = Column(String(64), nullable=False)
+    criado_em = Column(DateTime, nullable=False, default=utcnow_naive)
+    expira_em = Column(DateTime, nullable=False, index=True)
+
+    usuario = relationship("Usuario", back_populates="sessoes")
+
+
+class TentativaLogin(Base):
+    __tablename__ = "tentativa_login"
+
+    id = Column(Integer, primary_key=True)
+    chave_hash = Column(String(64), nullable=False, index=True)
+    criada_em = Column(DateTime, nullable=False, default=utcnow_naive, index=True)

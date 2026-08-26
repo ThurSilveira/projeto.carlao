@@ -1,5 +1,6 @@
 import os
-from urllib.parse import urlparse, urlunparse
+import re
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
@@ -17,6 +18,17 @@ def _build_url() -> str:
             url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
 
         parsed = urlparse(url)
+        query_items = parse_qsl(parsed.query, keep_blank_values=True)
+        schema = next((value for key, value in query_items if key == "schema"), None)
+        if schema is not None:
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", schema):
+                raise RuntimeError("O parâmetro schema da DATABASE_URL é inválido.")
+            query_items = [(key, value) for key, value in query_items if key != "schema"]
+            if schema != "public" and not any(key == "options" for key, _ in query_items):
+                query_items.append(("options", f"-csearch_path={schema}"))
+            parsed = parsed._replace(query=urlencode(query_items))
+            url = urlunparse(parsed)
+
         if parsed.username is None and parsed.password is None:
             db_user = os.getenv("DB_USERNAME", "")
             db_password = os.getenv("DB_PASSWORD", "")

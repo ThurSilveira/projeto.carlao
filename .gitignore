@@ -191,6 +191,7 @@ production-data-export*.json
 # Project-specific
 .claude/*
 RODAR_LOCAL.txt
+/backend/src/generated/prisma/
 
 # Local guidance for LLM coding agents
 LLM_CONTEXT.md

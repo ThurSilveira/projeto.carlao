@@ -67,6 +67,9 @@ jobs:
       DATABASE_URL: postgresql://escala_ci:escala_ci@127.0.0.1:5432/escala_ci
       DB_SSL: "false"
       ENVIRONMENT: production
+      CORS_ORIGINS: http://localhost:3000
+      AUTH_ADMIN_NAME: CI Administrator
+      AUTH_ADMIN_EMAIL: admin-ci@example.com
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -78,6 +81,9 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
 
+      - name: Generate ephemeral authentication credential
+        run: python -c 'import os, secrets; open(os.environ["GITHUB_ENV"], "a").write(f"AUTH_ADMIN_PASSWORD={secrets.token_urlsafe(32)}\n")'
+
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
@@ -85,6 +91,7 @@ jobs:
         run: |
           python -m pip check
           python -m compileall -q app
+          python -m unittest discover -s tests -v
 
       - name: Start API and run smoke tests
         run: |
@@ -104,6 +111,41 @@ jobs:
           python -c 'import json; data=json.load(open("/tmp/health.json")); assert data["status"] == "UP"'
           curl --fail --silent http://127.0.0.1:8080/api/openapi.json | python -m json.tool > /dev/null
 
+          unauthenticated_status=$(curl --silent --output /tmp/unauthenticated.json --write-out "%{http_code}" \
+            http://127.0.0.1:8080/api/ministros)
+          test "$unauthenticated_status" = "401"
+
+          curl --fail --silent --show-error \
+            --dump-header /tmp/login.headers \
+            --output /tmp/login.json \
+            --request POST \
+            --url http://127.0.0.1:8080/api/auth/login \
+            --header "Content-Type: application/json" \
+            --header "Origin: http://localhost:3000" \
+            --data "$(jq -nc --arg email "$AUTH_ADMIN_EMAIL" --arg password "$AUTH_ADMIN_PASSWORD" '{email: $email, senha: $password}')"
+          csrf_token=$(jq -er '.csrfToken' /tmp/login.json)
+          session_cookie=$(awk 'BEGIN { IGNORECASE=1 } /^set-cookie: __Host-escala_session=/ { sub(/\r$/, ""); split($2, parts, ";"); print parts[1] }' /tmp/login.headers)
+          test -n "$session_cookie"
+          jq -e '.usuario.perfil == "ADMINISTRADOR" and .usuario.protegido == true' /tmp/login.json > /dev/null
+
+          curl --fail --silent --show-error \
+            --cookie "$session_cookie" \
+            http://127.0.0.1:8080/api/usuarios/perfis \
+            | jq -e 'length == 4' > /dev/null
+
+          missing_csrf_status=$(curl --silent --output /tmp/missing-csrf.json --write-out "%{http_code}" \
+            --request DELETE \
+            --cookie "$session_cookie" \
+            http://127.0.0.1:8080/api/usuarios/1)
+          test "$missing_csrf_status" = "403"
+
+          protected_admin_status=$(curl --silent --output /tmp/protected-admin.json --write-out "%{http_code}" \
+            --request DELETE \
+            --cookie "$session_cookie" \
+            --header "X-CSRF-Token: $csrf_token" \
+            http://127.0.0.1:8080/api/usuarios/1)
+          test "$protected_admin_status" = "400"
+
   docker:
     name: Docker (${{ matrix.component }})
     needs: [frontend, backend]
@@ -116,7 +158,7 @@ jobs:
           - component: frontend
             context: frontend
             build_args: |
-              VITE_API_URL=https://escala-ministerial-api.onrender.com/api
+              VITE_API_URL=/api
               VITE_ENV=production
           - component: backend
             context: backend
@@ -140,7 +182,7 @@ jobs:
   deploy-vercel:
     name: Deploy Vercel
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [frontend, backend, docker]
+    needs: [deploy-render]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
@@ -226,4 +268,8 @@ jobs:
           exit 1
 
       - name: Verify backend health
-        run: curl --fail --silent --show-error https://escala-ministerial-api.onrender.com/api/public/health
+        run: |
+          curl --fail --silent --show-error https://escala-ministerial-api.onrender.com/api/public/health
+          protected_status=$(curl --silent --output /tmp/render-protected.json --write-out "%{http_code}" \
+            https://escala-ministerial-api.onrender.com/api/ministros)
+          test "$protected_status" = "401"

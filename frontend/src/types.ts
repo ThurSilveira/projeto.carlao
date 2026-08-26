@@ -194,3 +194,49 @@ export interface LogAuditoria {
   realizadoPorId?: string;
   dataHora: string;
 }
+
+export interface AuthUser {
+  id: number;
+  nome: string;
+  email: string;
+  perfil: 'ADMINISTRADOR' | 'COORDENADOR' | 'CONSULTA' | 'MINISTRO';
+  protegido: boolean;
+  ministroId?: number;
+}
+
+export interface AuthSession {
+  usuario: AuthUser;
+  csrfToken: string;
+  expiraEm: string;
+}
+
+export interface MinistroPortal {
+  id: number;
+  nome: string;
+  email: string;
+  funcao?: string;
+}
+
+export interface CalendarioMinistroEvento {
+  eventoId: number;
+  nome: string;
+  data: string;
+  horario: string;
+  tipoEvento?: string;
+  local?: string;
+  cancelado: boolean;
+  escalaId?: number;
+  statusEscala?: string;
+  escalado: boolean;
+  funcaoMinistro?: string;
+  confirmacaoMinistro: boolean;
+  feedbackEnviado: boolean;
+  feedbackDisponivel: boolean;
+}
+
+export interface FeedbackMinistro extends Feedback {
+  eventoNome: string;
+  eventoData: string;
+  eventoHorario: string;
+  eventoLocal?: string;
+}
