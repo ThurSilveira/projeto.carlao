@@ -16,3 +16,31 @@ services:
         value: https://escala-ministerial.vercel.app
       - key: ENVIRONMENT
         value: production
+      - key: AUTH_ADMIN_NAME
+        value: Administrador
+      - key: AUTH_ADMIN_EMAIL
+        sync: false
+      - key: AUTH_ADMIN_PASSWORD
+        sync: false
+      - key: AUTH_MINISTRO_NAME
+        value: Ministro de Teste
+      - key: AUTH_MINISTRO_EMAIL
+        sync: false
+      - key: AUTH_MINISTRO_PASSWORD
+        sync: false
+      - key: AUTH_SESSION_HOURS
+        value: "8"
+      - key: GOOGLE_CALENDAR_ENABLED
+        value: "false"
+      - key: GOOGLE_CALENDAR_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CALENDAR_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALENDAR_REFRESH_TOKEN
+        sync: false
+      - key: GOOGLE_CALENDAR_ID
+        sync: false
+      - key: GOOGLE_CALENDAR_TIMEZONE
+        value: America/Sao_Paulo
+      - key: GOOGLE_CALENDAR_EVENT_DURATION_MINUTES
+        value: "120"

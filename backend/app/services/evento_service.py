@@ -1,9 +1,27 @@
 from sqlalchemy.orm import Session
-from app.models import Evento
+from app.models import Escala, Evento
 from app.schemas import EventoIn, EventoOut
 from app.services import auditoria_service
 
 _TIPOS_VALIDOS = {"MISSA_PAROQUIAL", "MISSA_ESPECIAL", "RETIRO", "BATIZADO", "CASAMENTO", "ADORACAO", "OUTRO"}
+
+
+def _sync_calendar_scales(db: Session, event: Evento) -> None:
+    from app.services import google_calendar_service
+
+    for scale_id, in db.query(Escala.id).filter(Escala.evento_id == event.id).all():
+        try:
+            google_calendar_service.sync_scale(db, scale_id)
+        except Exception as exc:
+            db.rollback()
+            auditoria_service.registrar(
+                db,
+                "Google Calendar",
+                "FALHA",
+                None,
+                f"Escala {scale_id} — {str(exc)[:500]}",
+            )
+            db.commit()
 
 
 def _to_out(e: Evento) -> EventoOut:
@@ -56,6 +74,7 @@ def atualizar(db: Session, evento_id: int, data: EventoIn) -> EventoOut | None:
     _preencher(evento, data)
     auditoria_service.registrar(db, "Evento", "ATUALIZADO", prev, f"ATUALIZADO — {_evento_detalhes(evento)}")
     db.commit()
+    _sync_calendar_scales(db, evento)
     db.refresh(evento)
     return _to_out(evento)
 
@@ -67,6 +86,7 @@ def cancelar(db: Session, evento_id: int) -> EventoOut | None:
     evento.cancelado = True
     auditoria_service.registrar(db, "Evento", "CANCELADO", "ATIVO", f"CANCELADO — {_evento_detalhes(evento)}")
     db.commit()
+    _sync_calendar_scales(db, evento)
     db.refresh(evento)
     return _to_out(evento)
 
@@ -74,6 +94,14 @@ def cancelar(db: Session, evento_id: int) -> EventoOut | None:
 def deletar(db: Session, evento_id: int) -> None:
     evento = db.get(Evento, evento_id)
     if evento:
+        from app.services import google_calendar_service
+
+        for scale_id, in db.query(Escala.id).filter(Escala.evento_id == evento.id).all():
+            result = google_calendar_service.cancel_scale_events(db, scale_id)
+            if result.falhas or result.pendentes:
+                raise ValueError(
+                    "Não foi possível remover todas as notificações do Google Calendar; o evento não foi excluído."
+                )
         auditoria_service.registrar(db, "Evento", "DELETADO", evento.nome, f"DELETADO — {_evento_detalhes(evento)}")
         db.delete(evento)
         db.commit()
