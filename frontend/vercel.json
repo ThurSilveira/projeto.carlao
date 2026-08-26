@@ -15,6 +15,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://escala-ministerial-api.onrender.com/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
