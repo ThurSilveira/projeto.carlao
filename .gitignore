@@ -1,12 +1,8 @@
-# Environment
-.env
-.env.local
-.env.*
-!.env.example
-.env.*.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Environment and secrets
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
 
 # IDE & Editors
 .idea/
@@ -66,8 +62,6 @@ MANIFEST
 venv/
 ENV/
 env/
-.vscode/
-.env.local
 
 # Gradle / Android
 .gradle/
@@ -130,16 +124,7 @@ target/
 *.bundle.js
 *.bundle.css
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-.venv
+# Python tooling
 pip-log.txt
 pip-delete-this-directory.txt
 .tox/
@@ -191,6 +176,10 @@ production-data-export*.json
 # Project-specific
 .claude/*
 RODAR_LOCAL.txt
+/backend/src/generated/prisma/
+
+# Local Copilot/Codex agent experiments (not application source)
+/.github/agents/
 
 # Local guidance for LLM coding agents
 LLM_CONTEXT.md

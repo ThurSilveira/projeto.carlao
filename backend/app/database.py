@@ -1,43 +1,63 @@
 import os
-from urllib.parse import urlparse, urlunparse
+import re
+
 from sqlalchemy import create_engine
+from sqlalchemy.engine import URL, make_url
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
+
+def _normalize_url(raw_url: str) -> str:
+    """Converte formatos aceitos pelo projeto para uma URL válida do psycopg2."""
+    url = raw_url.strip()
+    if url.startswith("jdbc:postgresql://"):
+        url = url.removeprefix("jdbc:")
+    elif url.startswith("jdbc:postgres://"):
+        url = url.removeprefix("jdbc:")
+
+    parsed = make_url(url)
+    if parsed.drivername in {"postgres", "postgresql"}:
+        parsed = parsed.set(drivername="postgresql+psycopg2")
+
+    query = dict(parsed.query)
+    schema = query.pop("schema", None)
+    if schema is not None:
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", schema):
+            raise RuntimeError("O parâmetro schema da DATABASE_URL é inválido.")
+        if schema != "public" and "options" not in query:
+            query["options"] = f"-csearch_path={schema}"
+        parsed = parsed.set(query=query)
+
+    if parsed.username is None:
+        username = os.getenv("DB_USERNAME", "").strip() or None
+        password = os.getenv("DB_PASSWORD") if username else None
+        parsed = parsed.set(username=username, password=password)
+
+    return parsed.render_as_string(hide_password=False)
 
 
 def _build_url() -> str:
     url = os.getenv("DATABASE_URL", "").strip()
     if url:
-        if url.startswith("jdbc:postgresql://"):
-            url = url.replace("jdbc:postgresql://", "postgresql://", 1)
-        elif url.startswith("jdbc:postgres://"):
-            url = url.replace("jdbc:postgres://", "postgresql://", 1)
-        if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
-        elif url.startswith("postgresql://"):
-            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
-
-        parsed = urlparse(url)
-        if parsed.username is None and parsed.password is None:
-            db_user = os.getenv("DB_USERNAME", "")
-            db_password = os.getenv("DB_PASSWORD", "")
-            if db_user:
-                netloc = db_user
-                if db_password:
-                    netloc = f"{db_user}:{db_password}"
-                if parsed.hostname:
-                    netloc = f"{netloc}@{parsed.hostname}"
-                if parsed.port:
-                    netloc = f"{netloc}:{parsed.port}"
-                url = urlunparse((parsed.scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
-
-        return url
+        return _normalize_url(url)
 
     host = os.getenv("DB_HOST", "localhost")
-    port = os.getenv("DB_PORT", "5432")
+    raw_port = os.getenv("DB_PORT", "5432")
     name = os.getenv("DB_NAME", "escala_ministerial")
-    user = os.getenv("DB_USERNAME", "")
-    password = os.getenv("DB_PASSWORD", "")
-    return f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}"
+    user = os.getenv("DB_USERNAME", "").strip() or None
+    password = os.getenv("DB_PASSWORD") if user else None
+    try:
+        port = int(raw_port)
+    except ValueError as exc:
+        raise RuntimeError("DB_PORT deve ser um número inteiro.") from exc
+
+    return URL.create(
+        "postgresql+psycopg2",
+        username=user,
+        password=password,
+        host=host,
+        port=port,
+        database=name,
+    ).render_as_string(hide_password=False)
 
 
 _sslmode = os.getenv("DB_SSLMODE", "").strip().lower()
