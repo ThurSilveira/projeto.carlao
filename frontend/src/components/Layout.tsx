@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Moon, Sun } from 'lucide-react';
+import { LogOut, Menu, X, Moon, Sun, UserRound } from 'lucide-react';
 import clsx from 'clsx';
 import { useTheme } from '@/hooks/useTheme';
 import { Modal, Button } from '@/components/ui';
+import { useAuth } from '@/hooks/useAuth';
+import { getErrorMessage } from '@/utils/error';
 
 const NOTICE_KEY = 'render_cold_start_notice_seen';
 
@@ -32,19 +34,32 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState('');
   const [isDarkMode, toggleTheme] = useTheme();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
-  const navItems = [
-    { label: 'Dashboard', href: '/', icon: '📊' },
-    { label: 'Ministros', href: '/ministros', icon: '👥' },
-    { label: 'Eventos', href: '/eventos', icon: '📅' },
-    { label: 'Escalas', href: '/escalas', icon: '📋' },
-    { label: 'Feedback', href: '/feedback', icon: '💬' },
-    { label: 'Auditoria', href: '/auditoria', icon: '📝' },
-  ];
+  const navItems = user?.perfil === 'MINISTRO'
+    ? [{ label: 'Meu acesso', href: '/meu-acesso', icon: '👤' }]
+    : [
+        { label: 'Dashboard', href: '/', icon: '📊' },
+        { label: 'Ministros', href: '/ministros', icon: '👥' },
+        { label: 'Eventos', href: '/eventos', icon: '📅' },
+        { label: 'Escalas', href: '/escalas', icon: '📋' },
+        { label: 'Feedback', href: '/feedback', icon: '💬' },
+        { label: 'Auditoria', href: '/auditoria', icon: '📝' },
+      ].filter((item) => item.href !== '/auditoria' || user?.perfil !== 'CONSULTA');
 
   const isActive = (href: string) => location.pathname === href;
+
+  const handleLogout = async () => {
+    setLogoutError('');
+    try {
+      await logout();
+    } catch (error) {
+      setLogoutError(getErrorMessage(error, 'Não foi possível encerrar a sessão.'));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-neutral-100 dark:bg-neutral-900 transition-colors duration-300">
@@ -88,6 +103,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2 px-2 text-left" title={user?.email}>
+              <span className="size-8 rounded-full bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-100 flex items-center justify-center">
+                <UserRound size={17} />
+              </span>
+              <span className="max-w-32">
+                <span className="block text-xs font-semibold text-slate-800 dark:text-white truncate">{user?.nome}</span>
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400">{user?.perfil}</span>
+              </span>
+            </div>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
@@ -96,6 +120,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               {isDarkMode
                 ? <Sun size={20} className="text-amber-400" />
                 : <Moon size={20} className="text-slate-600" />}
+            </button>
+
+            <button
+              onClick={() => void handleLogout()}
+              className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-600 dark:text-slate-300 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+              aria-label="Encerrar sessão"
+              title="Encerrar sessão"
+            >
+              <LogOut size={20} />
             </button>
 
             {/* Mobile Menu Button */}
@@ -135,6 +168,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </nav>
         )}
       </header>
+
+      {logoutError && (
+        <div className="container mx-auto px-4 pt-4 text-sm text-red-700 dark:text-red-300" role="alert">
+          {logoutError}
+        </div>
+      )}
 
       {/* Main Content */}
       <main id="skip-to-main" className="container mx-auto px-4 py-8">

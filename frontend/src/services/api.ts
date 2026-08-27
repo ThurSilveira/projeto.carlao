@@ -1,15 +1,44 @@
 import axios from 'axios';
-import { Ministro, Evento, Escala, Feedback, LogAuditoria, Indisponibilidade, PreviewEscala } from '@/types';
+import type {
+  AuthSession,
+  Ministro,
+  Evento,
+  Escala,
+  Feedback,
+  LogAuditoria,
+  Indisponibilidade,
+  PreviewEscala,
+} from '@/types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const CSRF_STORAGE_KEY = 'escala_csrf_token';
+export const AUTH_UNAUTHORIZED_EVENT = 'escala:unauthorized';
+
+let csrfToken = sessionStorage.getItem(CSRF_STORAGE_KEY);
+
+export const setCsrfToken = (token: string | null): void => {
+  csrfToken = token;
+  if (token) sessionStorage.setItem(CSRF_STORAGE_KEY, token);
+  else sessionStorage.removeItem(CSRF_STORAGE_KEY);
+};
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 60000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
+});
+
+api.interceptors.request.use((config) => {
+  const method = config.method?.toUpperCase() ?? 'GET';
+  if (csrfToken && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+    config.headers.set('X-CSRF-Token', csrfToken);
+  }
+  return config;
 });
 
 api.interceptors.response.use(
@@ -20,9 +49,41 @@ api.interceptors.response.use(
     } else if (!err.response) {
       err.message = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
     }
+    const requestUrl = String(err.config?.url ?? '');
+    if (err.response?.status === 401 && !requestUrl.endsWith('/auth/login')) {
+      setCsrfToken(null);
+      window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT));
+    }
     return Promise.reject(err);
   },
 );
+
+// ── Autenticação ──────────────────────────────────────────────────────────────
+
+export const AuthService = {
+  login: async (email: string, senha: string): Promise<AuthSession> => {
+    const res = await api.post<AuthSession>('/auth/login', { email, senha });
+    setCsrfToken(res.data.csrfToken);
+    return res.data;
+  },
+
+  me: async (): Promise<AuthSession> => {
+    const res = await api.get<AuthSession>('/auth/me');
+    setCsrfToken(res.data.csrfToken);
+    return res.data;
+  },
+
+  logout: async (): Promise<void> => {
+    await api.post('/auth/logout');
+    setCsrfToken(null);
+  },
+
+  changePassword: async (senhaAtual: string, novaSenha: string): Promise<AuthSession> => {
+    const res = await api.put<AuthSession>('/auth/password', { senhaAtual, novaSenha });
+    setCsrfToken(res.data.csrfToken);
+    return res.data;
+  },
+};
 
 // ── Ministros ─────────────────────────────────────────────────────────────────
 

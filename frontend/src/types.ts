@@ -194,3 +194,20 @@ export interface LogAuditoria {
   realizadoPorId?: string;
   dataHora: string;
 }
+
+export type AuthProfile = 'ADMINISTRADOR' | 'COORDENADOR' | 'CONSULTA' | 'MINISTRO';
+
+export interface AuthUser {
+  id: number;
+  nome: string;
+  email: string;
+  perfil: AuthProfile;
+  protegido: boolean;
+  ministroId?: number;
+}
+
+export interface AuthSession {
+  usuario: AuthUser;
+  csrfToken: string;
+  expiraEm: string;
+}

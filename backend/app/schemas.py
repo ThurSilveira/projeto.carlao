@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import date, datetime, time as time_obj
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -34,6 +34,87 @@ class BaseSchema(BaseModel):
         alias_generator=to_camel,
         populate_by_name=True,
     )
+
+
+# ── Autenticação ─────────────────────────────────────────────────────────────
+
+class LoginIn(BaseSchema):
+    email: str = Field(min_length=3, max_length=254)
+    senha: str = Field(min_length=1, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalizar_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class UsuarioOut(BaseSchema):
+    id: int
+    nome: str
+    email: str
+    perfil: str
+    protegido: bool = False
+    ministro_id: Optional[int] = None
+
+
+class SessaoOut(BaseSchema):
+    usuario: UsuarioOut
+    csrf_token: str
+    expira_em: datetime
+
+
+class AlterarSenhaIn(BaseSchema):
+    senha_atual: str = Field(min_length=1, max_length=128)
+    nova_senha: str = Field(min_length=12, max_length=128)
+
+
+class UsuarioAdminIn(BaseSchema):
+    nome: str = Field(min_length=2, max_length=120)
+    email: str = Field(min_length=3, max_length=254)
+    senha: str = Field(min_length=12, max_length=128)
+    perfil: str
+    ativo: bool = True
+    ministro_id: Optional[int] = None
+
+    @field_validator("email")
+    @classmethod
+    def normalizar_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class UsuarioAdminUpdate(BaseSchema):
+    nome: str = Field(min_length=2, max_length=120)
+    email: str = Field(min_length=3, max_length=254)
+    perfil: str
+    ativo: bool
+    ministro_id: Optional[int] = None
+
+    @field_validator("email")
+    @classmethod
+    def normalizar_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class UsuarioAdminOut(BaseSchema):
+    id: int
+    nome: str
+    email: str
+    perfil: str
+    ativo: bool
+    protegido: bool
+    ministro_id: Optional[int] = None
+    criado_em: datetime
+    atualizado_em: datetime
+
+
+class RedefinirSenhaIn(BaseSchema):
+    nova_senha: str = Field(min_length=12, max_length=128)
+
+
+class PerfilOut(BaseSchema):
+    nome: str
+    descricao: str
+    permissoes: List[str]
 
 
 # ── Indisponibilidade ─────────────────────────────────────────────────────────
