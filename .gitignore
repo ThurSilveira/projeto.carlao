@@ -183,3 +183,38 @@ RODAR_LOCAL.txt
 
 # Local guidance for LLM coding agents
 LLM_CONTEXT.md
+
+# Local agent state and experiments
+.agents/
+**/.agents/
+.codex/
+**/.codex/
+.claude/
+**/.claude/
+.github/agents/
+**/agents/
+
+# Test and analysis output (keep test source files trackable)
+**/.pytest_cache/
+**/.tox/
+**/.nox/
+test-results/
+test-output/
+test-reports/
+junit*.xml
+*.prof
+
+# Temporary and local runtime files
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+*.pid
+*.pid.lock
+*.bak
+*.orig
+*.rej
+*.dump
+*.har
+screenshots/

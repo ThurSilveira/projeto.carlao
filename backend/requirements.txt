@@ -5,3 +5,5 @@ psycopg2-binary==2.9.10
 python-dotenv==1.0.1
 pydantic-settings==2.6.1
 argon2-cffi==25.1.0
+google-api-python-client==2.193.0
+google-auth==2.53.0

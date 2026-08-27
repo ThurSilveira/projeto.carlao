@@ -6,6 +6,34 @@ from app.services import auditoria_service, auth_service
 _FUNCOES_VALIDAS = {"EUCARISTIA", "LEITURA", "ACOLHIMENTO", "MUSICA", "CATEQUESE", "ADORACAO", "OUTRO"}
 
 
+def _sync_calendar_scales(db: Session, minister_id: int) -> None:
+    from app.services import google_calendar_service
+
+    scale_ids = (
+        db.query(Escala.id)
+        .join(EscalaMinistro)
+        .filter(
+            EscalaMinistro.ministro_id == minister_id,
+            EscalaMinistro.substituido.is_(False),
+        )
+        .distinct()
+        .all()
+    )
+    for scale_id, in scale_ids:
+        try:
+            google_calendar_service.sync_scale(db, scale_id)
+        except Exception as exc:
+            db.rollback()
+            auditoria_service.registrar(
+                db,
+                "Google Calendar",
+                "FALHA",
+                None,
+                f"Escala {scale_id} — {str(exc)[:500]}",
+            )
+            db.commit()
+
+
 def _to_out(db: Session, m: Ministro) -> MinistroOut:
     escalas_agendadas = [
         row[0]
@@ -99,6 +127,7 @@ def atualizar(db: Session, ministro_id: int, data: MinistroIn) -> MinistroOut | 
     _preencher(m, data)
     auditoria_service.registrar(db, "Ministro", "ATUALIZADO", prev, m.nome)
     db.commit()
+    _sync_calendar_scales(db, m.id)
     db.refresh(m)
     return _to_out(db, m)
 

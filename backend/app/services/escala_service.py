@@ -9,6 +9,23 @@ from app.schemas import (
 from app.services import auditoria_service
 
 
+def _sync_calendar_after_commit(db: Session, scale_id: int) -> None:
+    try:
+        from app.services import google_calendar_service
+
+        google_calendar_service.sync_scale(db, scale_id)
+    except Exception as exc:
+        db.rollback()
+        auditoria_service.registrar(
+            db,
+            "Google Calendar",
+            "FALHA",
+            None,
+            f"Escala {scale_id} — {str(exc)[:500]}",
+        )
+        db.commit()
+
+
 def _to_out(e: Escala) -> EscalaOut:
     ems = [
         EscalaMinistroOut(
@@ -218,6 +235,8 @@ def substituir(db: Session, escala_id: int, ministro_id: int, substituto_id: int
         f"SUBSTITUÍDO {antigo.nome if antigo else ministro_id} → {novo.nome} — {_escala_detalhes(escala)}",
     )
     db.commit()
+    if escala.status in {"APROVADA", "CONFIRMADA"}:
+        _sync_calendar_after_commit(db, escala.id)
     db.refresh(escala)
     return _to_out(escala)
 
@@ -455,6 +474,7 @@ def aprovar(db: Session, escala_id: int) -> EscalaOut | None:
     escala.status = "APROVADA"
     auditoria_service.registrar(db, "Escala", "APROVADO", prev, f"APROVADA — {_escala_detalhes(escala)}")
     db.commit()
+    _sync_calendar_after_commit(db, escala.id)
     db.refresh(escala)
     return _to_out(escala)
 
@@ -467,6 +487,7 @@ def cancelar(db: Session, escala_id: int) -> EscalaOut | None:
     escala.status = "CANCELADA"
     auditoria_service.registrar(db, "Escala", "CANCELADO", prev, f"CANCELADA — {_escala_detalhes(escala)}")
     db.commit()
+    _sync_calendar_after_commit(db, escala.id)
     db.refresh(escala)
     return _to_out(escala)
 
@@ -474,6 +495,13 @@ def cancelar(db: Session, escala_id: int) -> EscalaOut | None:
 def deletar(db: Session, escala_id: int) -> None:
     escala = db.get(Escala, escala_id)
     if escala:
+        from app.services import google_calendar_service
+
+        result = google_calendar_service.remove_scale_event(db, escala)
+        if result.status not in {"SEM_EVENTO", "REMOVIDO"}:
+            raise ValueError(
+                "A notificação do Google Calendar ainda não foi removida; a escala foi preservada."
+            )
         auditoria_service.registrar(db, "Escala", "DELETADO", escala.status, f"DELETADA — {_escala_detalhes(escala)}")
         db.delete(escala)
         db.commit()

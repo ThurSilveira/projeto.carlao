@@ -3,8 +3,8 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.routers import CamelRouter
-from app.schemas import EscalaIn, EscalaOut, GerarEscalaIn, PreviewEscalaOut, SubstituirEscalaIn
-from app.services import escala_service
+from app.schemas import EscalaIn, EscalaOut, GerarEscalaIn, PreviewEscalaOut, SincronizacaoCalendarioOut, SubstituirEscalaIn
+from app.services import escala_service, google_calendar_service
 
 router = CamelRouter()
 
@@ -29,6 +29,16 @@ def preview_substituicao(escala_id: int, ministro_id: int, db: Session = Depends
         return escala_service.preview_substituicao(db, escala_id, ministro_id)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+
+@router.post("/{escala_id}/sincronizar-calendario", response_model=SincronizacaoCalendarioOut)
+def sincronizar_calendario(escala_id: int, db: Session = Depends(get_db)):
+    try:
+        return google_calendar_service.sync_scale(db, escala_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 
 
 @router.get("/{escala_id}", response_model=EscalaOut)

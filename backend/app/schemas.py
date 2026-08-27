@@ -291,6 +291,13 @@ class FeedbackMinistroOut(FeedbackOut):
     evento_local: Optional[str] = None
 
 
+class SincronizacaoCalendarioOut(BaseSchema):
+    escala_id: int
+    configurado: bool
+    status: str
+    destinatarios: int = 0
+
+
 # ── Escala Preview ────────────────────────────────────────────────────────────
 
 class MinistroExcluidoOut(BaseSchema):

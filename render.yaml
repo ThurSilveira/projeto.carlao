@@ -24,3 +24,21 @@ services:
         sync: false
       - key: AUTH_SESSION_HOURS
         value: "8"
+      - key: EVENT_TIMEZONE
+        value: America/Sao_Paulo
+      - key: EVENT_DURATION_MINUTES
+        value: "120"
+      - key: GOOGLE_CALENDAR_ENABLED
+        value: "false"
+      - key: GOOGLE_CALENDAR_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CALENDAR_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_CALENDAR_REFRESH_TOKEN
+        sync: false
+      - key: GOOGLE_CALENDAR_ID
+        value: primary
+      - key: GOOGLE_CALENDAR_EVENT_NAMESPACE
+        value: escala-ministerial-production
+      - key: GOOGLE_CALENDAR_SAME_DAY_REMINDER_MINUTES
+        value: "60"

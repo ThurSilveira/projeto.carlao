@@ -1,5 +1,5 @@
 from datetime import UTC, date, datetime
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -48,7 +48,11 @@ class Evento(Base):
     cancelado = Column(Boolean, nullable=False, default=False)
     tipo_especificado = Column(String)
 
-    escalas = relationship("Escala", back_populates="evento")
+    escalas = relationship(
+        "Escala",
+        back_populates="evento",
+        cascade="all, delete-orphan",
+    )
     feedbacks = relationship("Feedback", back_populates="evento")
 
 
@@ -63,6 +67,12 @@ class Escala(Base):
 
     evento = relationship("Evento", back_populates="escalas")
     escala_ministros = relationship("EscalaMinistro", back_populates="escala", cascade="all, delete-orphan")
+    sincronizacao_calendario = relationship(
+        "SincronizacaoCalendario",
+        back_populates="escala",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
 
 
 class EscalaMinistro(Base):
@@ -180,3 +190,24 @@ class TentativaLogin(Base):
     id = Column(Integer, primary_key=True)
     chave_hash = Column(String(64), nullable=False, index=True)
     criada_em = Column(DateTime, nullable=False, default=utcnow_naive, index=True)
+
+
+class SincronizacaoCalendario(Base):
+    __tablename__ = "sincronizacao_calendario"
+
+    id = Column(Integer, primary_key=True)
+    escala_id = Column(
+        Integer,
+        ForeignKey("escala.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=False,
+        index=True,
+    )
+    google_event_id = Column(String(255), unique=True)
+    status = Column(String(30), nullable=False, default="PENDENTE", index=True)
+    destinatarios = Column(Integer, nullable=False, default=0)
+    erro = Column(Text)
+    ultima_tentativa_em = Column(DateTime)
+    atualizado_em = Column(DateTime, nullable=False, default=utcnow_naive, onupdate=utcnow_naive)
+
+    escala = relationship("Escala", back_populates="sincronizacao_calendario")

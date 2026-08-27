@@ -201,6 +201,15 @@ shell; prefira um arquivo local ignorado pelo Git ou um gerenciador de secrets.
 | `CORS_ORIGINS` | Sim | Origens web permitidas, separadas por vírgula |
 | `ENVIRONMENT` | Sim | `development` ou `production` |
 | `PORT` | Plataforma | Porta do servidor, padrão `8080` |
+| `EVENT_TIMEZONE` | Não | Fuso IANA dos eventos; padrão `America/Sao_Paulo` |
+| `EVENT_DURATION_MINUTES` | Não | Duração usada nos eventos do calendário; padrão `120` |
+| `GOOGLE_CALENDAR_ENABLED` | Não | Ativa a integração somente quando `true` |
+| `GOOGLE_CALENDAR_CLIENT_ID` | Com integração | Client ID OAuth 2.0 da conta organizadora |
+| `GOOGLE_CALENDAR_CLIENT_SECRET` | Com integração | Client secret OAuth 2.0; deve ser armazenado como segredo |
+| `GOOGLE_CALENDAR_REFRESH_TOKEN` | Com integração | Refresh token offline da conta organizadora; deve ser armazenado como segredo |
+| `GOOGLE_CALENDAR_ID` | Não | Calendário da conta organizadora; padrão `primary` |
+| `GOOGLE_CALENDAR_EVENT_NAMESPACE` | Não | Namespace estável e exclusivo por ambiente para IDs idempotentes |
+| `GOOGLE_CALENDAR_SAME_DAY_REMINDER_MINUTES` | Não | Antecedência do lembrete no dia; padrão `60` |
 
 ### Frontend
 
@@ -211,6 +220,32 @@ shell; prefira um arquivo local ignorado pelo Git ou um gerenciador de secrets.
 
 Variáveis `VITE_*` são incorporadas ao bundle e, portanto, não podem conter
 segredos.
+
+### Google Calendar
+
+A integração usa OAuth 2.0 de uma única conta organizadora e o escopo
+`https://www.googleapis.com/auth/calendar.events`. Antes de ativá-la, habilite a
+Google Calendar API no projeto Google Cloud, autorize essa conta com acesso
+offline e armazene o client ID, o client secret e o refresh token nas variáveis
+secretas da plataforma. Mantenha `GOOGLE_CALENDAR_ENABLED=false` até as três
+credenciais estarem configuradas; depois altere somente essa variável para
+`true`.
+
+Ao aprovar uma escala, a API cria um evento idempotente no calendário da conta
+organizadora, adiciona como convidados os ministros ativos e envia os convites.
+Alterações no evento, substituições e mudanças no e-mail ou no status ativo do
+ministro atualizam a lista de convidados. Cancelamentos e exclusões removem o
+evento remoto e notificam os convidados. A rota
+`POST /api/escalas/{id}/sincronizar-calendario` permite repetir manualmente uma
+sincronização que tenha falhado.
+
+O evento da conta organizadora recebe lembretes por e-mail com sete dias, três
+dias e a antecedência configurada para o próprio dia. O Google Calendar trata
+lembretes como dados privados de cada usuário, portanto esses três horários não
+são impostos às cópias dos convidados. Os ministros recebem convites,
+atualizações e cancelamentos e, após adicionar ou responder ao evento, seguem as
+configurações de lembrete do próprio calendário. E-mails garantidos nesses três
+horários exigem um agendador de notificações separado.
 
 ## API
 
