@@ -28,8 +28,16 @@ def criar(db: Session, ministro_id: int, data: IndisponibilidadeIn) -> Indisponi
     return _to_out(entity)
 
 
-def atualizar(db: Session, indisponibilidade_id: int, data: IndisponibilidadeIn) -> IndisponibilidadeOut:
-    entity = db.get(Indisponibilidade, indisponibilidade_id)
+def atualizar(
+    db: Session,
+    ministro_id: int,
+    indisponibilidade_id: int,
+    data: IndisponibilidadeIn,
+) -> IndisponibilidadeOut:
+    entity = db.query(Indisponibilidade).filter(
+        Indisponibilidade.id == indisponibilidade_id,
+        Indisponibilidade.ministro_id == ministro_id,
+    ).first()
     if not entity:
         raise ValueError(f"Indisponibilidade não encontrada: {indisponibilidade_id}")
     entity.data = data.data
@@ -41,8 +49,12 @@ def atualizar(db: Session, indisponibilidade_id: int, data: IndisponibilidadeIn)
     return _to_out(entity)
 
 
-def deletar(db: Session, indisponibilidade_id: int) -> None:
-    entity = db.get(Indisponibilidade, indisponibilidade_id)
-    if entity:
-        db.delete(entity)
-        db.commit()
+def deletar(db: Session, ministro_id: int, indisponibilidade_id: int) -> None:
+    entity = db.query(Indisponibilidade).filter(
+        Indisponibilidade.id == indisponibilidade_id,
+        Indisponibilidade.ministro_id == ministro_id,
+    ).first()
+    if not entity:
+        raise ValueError(f"Indisponibilidade não encontrada: {indisponibilidade_id}")
+    db.delete(entity)
+    db.commit()

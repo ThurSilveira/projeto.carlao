@@ -1,12 +1,15 @@
 import axios from 'axios';
 import type {
   AuthSession,
+  CalendarioMinistroEvento,
   Ministro,
   Evento,
   Escala,
   Feedback,
   LogAuditoria,
   Indisponibilidade,
+  FeedbackMinistro,
+  MinistroPortal,
   PreviewEscala,
 } from '@/types';
 
@@ -81,6 +84,62 @@ export const AuthService = {
   changePassword: async (senhaAtual: string, novaSenha: string): Promise<AuthSession> => {
     const res = await api.put<AuthSession>('/auth/password', { senhaAtual, novaSenha });
     setCsrfToken(res.data.csrfToken);
+    return res.data;
+  },
+};
+
+// ── Portal do ministro ───────────────────────────────────────────────────────
+
+export const PortalMinistroService = {
+  me: async (): Promise<MinistroPortal> => {
+    const res = await api.get<MinistroPortal>('/portal/ministro/me');
+    return res.data;
+  },
+
+  calendario: async (dataInicio: string, dataFim: string): Promise<CalendarioMinistroEvento[]> => {
+    const res = await api.get<CalendarioMinistroEvento[]>('/portal/ministro/calendario', {
+      params: { dataInicio, dataFim },
+    });
+    return res.data;
+  },
+
+  listarIndisponibilidades: async (): Promise<Indisponibilidade[]> => {
+    const res = await api.get<Indisponibilidade[]>('/portal/ministro/indisponibilidades');
+    return res.data;
+  },
+
+  criarIndisponibilidade: async (data: Partial<Indisponibilidade>): Promise<Indisponibilidade> => {
+    const res = await api.post<Indisponibilidade>('/portal/ministro/indisponibilidades', data);
+    return res.data;
+  },
+
+  atualizarIndisponibilidade: async (
+    id: number,
+    data: Partial<Indisponibilidade>,
+  ): Promise<Indisponibilidade> => {
+    const res = await api.put<Indisponibilidade>(`/portal/ministro/indisponibilidades/${id}`, data);
+    return res.data;
+  },
+
+  excluirIndisponibilidade: async (id: number): Promise<void> => {
+    await api.delete(`/portal/ministro/indisponibilidades/${id}`);
+  },
+
+  listarFeedbacks: async (): Promise<FeedbackMinistro[]> => {
+    const res = await api.get<FeedbackMinistro[]>('/portal/ministro/feedbacks');
+    return res.data;
+  },
+
+  criarFeedback: async (
+    eventoId: number,
+    nota: number,
+    comentario: string,
+  ): Promise<FeedbackMinistro> => {
+    const res = await api.post<FeedbackMinistro>('/portal/ministro/feedbacks', {
+      eventoId,
+      nota,
+      comentario,
+    });
     return res.data;
   },
 };

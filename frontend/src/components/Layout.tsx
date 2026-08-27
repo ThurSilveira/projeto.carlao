@@ -40,7 +40,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
 
   const navItems = user?.perfil === 'MINISTRO'
-    ? [{ label: 'Meu acesso', href: '/meu-acesso', icon: '👤' }]
+    ? [
+        { label: 'Meu calendário', href: '/meu-calendario', icon: '📅' },
+        { label: 'Indisponibilidades', href: '/minhas-indisponibilidades', icon: '🚫' },
+        { label: 'Feedback', href: '/meus-feedbacks', icon: '💬' },
+      ]
     : [
         { label: 'Dashboard', href: '/', icon: '📊' },
         { label: 'Ministros', href: '/ministros', icon: '👥' },

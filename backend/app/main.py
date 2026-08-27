@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.database import SessionLocal, engine
 from app.models import Base
-from app.routers import auth, health, ministros, eventos, escalas, feedbacks, indisponibilidades, auditoria, seed, usuarios
+from app.routers import auth, health, ministros, eventos, escalas, feedbacks, indisponibilidades, auditoria, portal_ministro, seed, usuarios
 from app.security import require_permission, require_resource_access
 from app.services import auth_service
 
@@ -77,6 +77,11 @@ async def security_headers(request: Request, call_next):
 app.include_router(health.router, prefix="/api/public", tags=["health"])
 app.include_router(auth.router, prefix="/api/auth", tags=["autenticação"])
 app.include_router(usuarios.router, prefix="/api/usuarios", tags=["usuários"])
+app.include_router(
+    portal_ministro.router,
+    prefix="/api/portal/ministro",
+    tags=["portal do ministro"],
+)
 app.include_router(
     ministros.router,
     prefix="/api/ministros",

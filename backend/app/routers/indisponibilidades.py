@@ -25,11 +25,14 @@ def criar(ministro_id: int, data: IndisponibilidadeIn, db: Session = Depends(get
 @router.put("/{indisponibilidade_id}", response_model=IndisponibilidadeOut)
 def atualizar(ministro_id: int, indisponibilidade_id: int, data: IndisponibilidadeIn, db: Session = Depends(get_db)):
     try:
-        return indisponibilidade_service.atualizar(db, indisponibilidade_id, data)
+        return indisponibilidade_service.atualizar(db, ministro_id, indisponibilidade_id, data)
     except ValueError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
 
 @router.delete("/{indisponibilidade_id}", status_code=status.HTTP_204_NO_CONTENT)
 def deletar(ministro_id: int, indisponibilidade_id: int, db: Session = Depends(get_db)):
-    indisponibilidade_service.deletar(db, indisponibilidade_id)
+    try:
+        indisponibilidade_service.deletar(db, ministro_id, indisponibilidade_id)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc

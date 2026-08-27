@@ -211,3 +211,34 @@ export interface AuthSession {
   csrfToken: string;
   expiraEm: string;
 }
+
+export interface MinistroPortal {
+  id: number;
+  nome: string;
+  email: string;
+  funcao?: string;
+}
+
+export interface CalendarioMinistroEvento {
+  eventoId: number;
+  nome: string;
+  data: string;
+  horario: string;
+  tipoEvento?: string;
+  local?: string;
+  cancelado: boolean;
+  escalaId?: number;
+  statusEscala?: string;
+  escalado: boolean;
+  funcaoMinistro?: string;
+  confirmacaoMinistro: boolean;
+  feedbackEnviado: boolean;
+  feedbackDisponivel: boolean;
+}
+
+export interface FeedbackMinistro extends Feedback {
+  eventoNome: string;
+  eventoData: string;
+  eventoHorario: string;
+  eventoLocal?: string;
+}

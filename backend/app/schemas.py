@@ -233,8 +233,8 @@ class EscalaOut(BaseSchema):
 class FeedbackIn(BaseSchema):
     ministro_id: int
     evento_id: int
-    nota: int
-    comentario: Optional[str] = None
+    nota: int = Field(ge=1, le=10)
+    comentario: Optional[str] = Field(default=None, max_length=2000)
 
 
 class FeedbackOut(BaseSchema):
@@ -249,7 +249,46 @@ class FeedbackOut(BaseSchema):
 
 
 class FeedbackResponder(BaseSchema):
-    resposta: str
+    resposta: str = Field(min_length=1, max_length=2000)
+
+
+# ── Portal do ministro ───────────────────────────────────────────────────────
+
+class MinistroPortalOut(BaseSchema):
+    id: int
+    nome: str
+    email: str
+    funcao: Optional[str] = None
+
+
+class CalendarioMinistroEventoOut(BaseSchema):
+    evento_id: int
+    nome: str
+    data: date
+    horario: str
+    tipo_evento: Optional[str] = None
+    local: Optional[str] = None
+    cancelado: bool = False
+    escala_id: Optional[int] = None
+    status_escala: Optional[str] = None
+    escalado: bool = False
+    funcao_ministro: Optional[str] = None
+    confirmacao_ministro: bool = False
+    feedback_enviado: bool = False
+    feedback_disponivel: bool = False
+
+
+class FeedbackMinistroIn(BaseSchema):
+    evento_id: int
+    nota: int = Field(ge=1, le=10)
+    comentario: Optional[str] = Field(default=None, max_length=2000)
+
+
+class FeedbackMinistroOut(FeedbackOut):
+    evento_nome: str
+    evento_data: date
+    evento_horario: str
+    evento_local: Optional[str] = None
 
 
 # ── Escala Preview ────────────────────────────────────────────────────────────
