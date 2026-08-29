@@ -204,6 +204,7 @@ export interface AuthUser {
   perfil: AuthProfile;
   protegido: boolean;
   ministroId?: number;
+  deveAlterarSenha: boolean;
 }
 
 export interface AuthSession {

@@ -55,6 +55,7 @@ class UsuarioOut(BaseSchema):
     perfil: str
     protegido: bool = False
     ministro_id: Optional[int] = None
+    deve_alterar_senha: bool = False
 
 
 class SessaoOut(BaseSchema):

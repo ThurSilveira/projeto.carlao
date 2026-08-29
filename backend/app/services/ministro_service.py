@@ -90,11 +90,14 @@ def criar(db: Session, data: MinistroIn) -> MinistroOut:
     normalized_email = auth_service.validate_email(data.email)
     if db.query(Ministro).filter(Ministro.email == normalized_email).first():
         raise ValueError("Já existe um ministro com este e-mail.")
+    if db.query(Usuario).filter(Usuario.email == normalized_email).first():
+        raise ValueError("Já existe um usuário com este e-mail.")
     data.email = normalized_email
     m = Ministro()
     _preencher(m, data)
     db.add(m)
     db.flush()
+    auth_service.create_minister_access(db, m)
     auditoria_service.registrar(db, "Ministro", "CRIADO", None, m.nome)
     db.commit()
     db.refresh(m)
@@ -122,6 +125,7 @@ def atualizar(db: Session, ministro_id: int, data: MinistroIn) -> MinistroOut | 
             raise ValueError("O novo e-mail já pertence a outro usuário do sistema.")
         linked_user.email = normalized_email
         linked_user.nome = data.nome.strip()
+        linked_user.ativo = data.ativo
     data.email = normalized_email
     prev = m.nome
     _preencher(m, data)
@@ -136,7 +140,8 @@ def deletar(db: Session, ministro_id: int) -> None:
     m = db.get(Ministro, ministro_id)
     if m:
         if m.vinculo_usuario:
-            raise ValueError("Remova ou altere o usuário vinculado antes de excluir este ministro.")
+            db.delete(m.vinculo_usuario.usuario)
+            db.flush()
         auditoria_service.registrar(db, "Ministro", "DELETADO", m.nome, None)
         db.delete(m)
         db.commit()

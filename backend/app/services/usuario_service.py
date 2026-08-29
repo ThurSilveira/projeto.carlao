@@ -165,6 +165,7 @@ def redefinir_senha(db: Session, user_id: int, new_password: str, actor: Usuario
     if user.id == actor.id:
         raise ValueError("Use a opção de alteração de senha da própria conta.")
     user.senha_hash = auth_service.hash_password(new_password)
+    user.deve_alterar_senha = False
     db.query(SessaoAutenticacao).filter(SessaoAutenticacao.usuario_id == user.id).delete(synchronize_session=False)
     auditoria_service.registrar(db, "Usuário", "SENHA_REDEFINIDA", None, user.email, str(actor.id))
     db.commit()

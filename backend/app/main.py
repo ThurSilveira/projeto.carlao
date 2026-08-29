@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.database import SessionLocal, engine
 from app.models import Base
+from app.schema_migrations import apply_schema_migrations
 from app.routers import auth, health, ministros, eventos, escalas, feedbacks, indisponibilidades, auditoria, portal_ministro, seed, usuarios
 from app.security import require_permission, require_resource_access
 from app.services import auth_service
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    apply_schema_migrations(engine)
     with SessionLocal() as db:
         auth_service.bootstrap_admin(db)
         if os.getenv("ENVIRONMENT", "production").lower() == "development":

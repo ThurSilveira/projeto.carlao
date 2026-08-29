@@ -23,6 +23,7 @@ def _session_response(session: SessaoAutenticacao) -> SessaoOut:
             perfil=access.perfil if access else "SEM_PERFIL",
             protegido=bool(access and access.protegido),
             ministro_id=(session.usuario.vinculo_ministro.ministro_id if session.usuario.vinculo_ministro else None),
+            deve_alterar_senha=session.usuario.deve_alterar_senha,
         ),
         csrf_token=session.csrf_token,
         expira_em=session.expira_em,

@@ -298,16 +298,19 @@ existem e o GitHub mascara seu uso nos logs.
 
 ## Segurança e limitações atuais
 
-- o backend ainda não implementa autenticação e autorização;
+- autenticação usa sessões em cookies `HttpOnly`, proteção CSRF e autorização por perfis;
+- todo novo ministro recebe uma conta vinculada com senha temporária e precisa
+  definir uma senha definitiva antes de acessar qualquer recurso do sistema;
 - os dados incluem informações pessoais e devem ser tratados conforme a LGPD;
 - produção restringe CORS ao domínio oficial da Vercel;
 - `/api/seed` não é montado em produção;
-- tabelas ainda são criadas por `Base.metadata.create_all`; migrations
-  versionadas continuam sendo uma dívida técnica;
+- tabelas ainda são criadas por `Base.metadata.create_all`; ajustes incrementais
+  idempotentes ficam em `app/schema_migrations.py`, mas migrations versionadas
+  continuam sendo uma dívida técnica;
 - o banco gratuito requer acompanhamento de expiração, backup e migração.
 
-Não use a API para dados sensíveis ou múltiplos administradores antes de
-implementar autenticação, autorização por papéis e uma política de retenção.
+Antes de armazenar dados pessoais reais, defina uma política de retenção,
+revise os acessos administrativos e mantenha backups do banco.
 
 ## Branches
 

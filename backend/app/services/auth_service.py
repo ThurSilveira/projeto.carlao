@@ -22,6 +22,7 @@ from app.models import (
 logger = logging.getLogger(__name__)
 SESSION_COOKIE_PRODUCTION = "__Host-escala_session"
 SESSION_COOKIE_DEVELOPMENT = "escala_session"
+DEFAULT_MINISTER_PASSWORD = "Senha123"
 _PASSWORD_HASHER = PasswordHasher(
     time_cost=3,
     memory_cost=65536,
@@ -64,6 +65,26 @@ def validate_new_password(password: str) -> None:
 def hash_password(password: str) -> str:
     validate_new_password(password)
     return _PASSWORD_HASHER.hash(password)
+
+
+def create_minister_access(db: Session, minister: Ministro) -> Usuario:
+    """Cria a conta inicial vinculada ao ministro dentro da transação atual."""
+    normalized_email = validate_email(minister.email)
+    if db.query(Usuario.id).filter(Usuario.email == normalized_email).first():
+        raise ValueError("Já existe um usuário com este e-mail.")
+
+    user = Usuario(
+        nome=minister.nome.strip()[:120],
+        email=normalized_email,
+        senha_hash=_PASSWORD_HASHER.hash(DEFAULT_MINISTER_PASSWORD),
+        deve_alterar_senha=True,
+        ativo=minister.ativo,
+    )
+    db.add(user)
+    db.flush()
+    db.add(AcessoUsuario(usuario_id=user.id, perfil=MINISTRO, protegido=False))
+    db.add(VinculoUsuarioMinistro(usuario_id=user.id, ministro_id=minister.id))
+    return user
 
 
 def verify_password(password: str, password_hash: str) -> bool:
@@ -233,7 +254,7 @@ def authenticate(db: Session, email: str, password: str, client_address: str) ->
 
     clear_login_attempts(db, normalized_email, client_address)
     if needs_password_rehash(user.senha_hash):
-        user.senha_hash = hash_password(password)
+        user.senha_hash = _PASSWORD_HASHER.hash(password)
         db.commit()
     return user
 
@@ -289,6 +310,7 @@ def change_password(
         raise ValueError("A nova senha deve ser diferente da senha atual.")
 
     user.senha_hash = hash_password(new_password)
+    user.deve_alterar_senha = False
     db.query(SessaoAutenticacao).filter(
         SessaoAutenticacao.usuario_id == user.id
     ).delete(synchronize_session="fetch")

@@ -55,6 +55,12 @@ def require_user(
     session: SessaoAutenticacao = Depends(get_current_session),
     db: Session = Depends(get_db),
 ) -> Generator[Usuario, None, None]:
+    if session.usuario.deve_alterar_senha:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            detail="Altere sua senha temporária antes de acessar o sistema.",
+            headers={"X-Password-Change-Required": "true"},
+        )
     db.info["current_user_id"] = str(session.usuario.id)
     try:
         yield session.usuario

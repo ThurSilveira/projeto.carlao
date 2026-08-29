@@ -13,6 +13,7 @@ import { EventosPage } from '@/pages/Eventos';
 import { FeedbackPage } from '@/pages/Feedback';
 import { MinistrosPage } from '@/pages/Ministros';
 import { LoginPage } from '@/pages/Login';
+import { TrocaSenhaObrigatoriaPage } from '@/pages/TrocaSenhaObrigatoria';
 import {
   CalendarioMinistroPage,
   FeedbackMinistroPage,
@@ -35,6 +36,15 @@ const AppRoutes: React.FC = () => {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  if (user.deveAlterarSenha) {
+    return (
+      <Routes>
+        <Route path="/alterar-senha" element={<TrocaSenhaObrigatoriaPage />} />
+        <Route path="*" element={<Navigate to="/alterar-senha" replace />} />
       </Routes>
     );
   }

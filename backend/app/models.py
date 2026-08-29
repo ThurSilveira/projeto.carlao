@@ -1,5 +1,5 @@
 from datetime import UTC, date, datetime
-from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, String, Text, text
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -30,7 +30,6 @@ class Ministro(Base):
     vinculo_usuario = relationship(
         "VinculoUsuarioMinistro",
         back_populates="ministro",
-        cascade="all, delete-orphan",
         uselist=False,
     )
 
@@ -137,6 +136,7 @@ class Usuario(Base):
     nome = Column(String(120), nullable=False)
     email = Column(String(254), unique=True, nullable=False, index=True)
     senha_hash = Column(String(512), nullable=False)
+    deve_alterar_senha = Column(Boolean, nullable=False, default=False, server_default=text("false"))
     ativo = Column(Boolean, nullable=False, default=True)
     criado_em = Column(DateTime, nullable=False, default=utcnow_naive)
     atualizado_em = Column(DateTime, nullable=False, default=utcnow_naive, onupdate=utcnow_naive)

@@ -93,7 +93,7 @@ export const MinistrosPage: React.FC = () => {
         showAlert('Ministro atualizado com sucesso!', 'success');
       } else {
         await MinistroService.createMinistro(formData);
-        showAlert('Ministro criado com sucesso!', 'success');
+        showAlert('Ministro e acesso criados. Senha temporária: Senha123', 'success');
       }
       await loadMinistros();
       setIsModalOpen(false);
