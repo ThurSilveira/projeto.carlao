@@ -360,7 +360,7 @@ export const MinistrosPage: React.FC = () => {
           <div className="space-y-2">
             {[
               { label: 'Ativo', key: 'ativo' as const },
-              { label: 'Realiza visitas ao infermo', key: 'visitasAoInfermo' as const },
+              { label: 'Realiza visitas aos enfermos', key: 'visitasAoInfermo' as const },
               { label: 'Curso completo', key: 'statusCurso' as const },
             ].map(({ label, key }) => (
               <label key={key} className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
