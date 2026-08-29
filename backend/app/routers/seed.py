@@ -31,7 +31,7 @@ def seed(quantidade: int = 10, db: Session = Depends(get_db)):
             telefone=f"({rnd.randint(11,99)}) 9{rnd.randint(1000,9999)}-{rnd.randint(1000,9999)}",
             data_nascimento=date(rnd.randint(1960, 2000), rnd.randint(1, 12), rnd.randint(1, 28)),
             ativo=rnd.random() > 0.15,
-            visitas_ao_infermo=rnd.choice([True, False]),
+            visitas_aos_enfermos=rnd.choice([True, False]),
             status_curso=rnd.choice([True, False]),
             escalas_mes=rnd.randint(0, 4),
             funcao=rnd.choice(_FUNCOES),

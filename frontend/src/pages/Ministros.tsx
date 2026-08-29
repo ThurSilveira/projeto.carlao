@@ -22,7 +22,7 @@ export const MinistrosPage: React.FC = () => {
   const [formData, setFormData] = useState<Partial<Ministro>>({
     nome: '', telefone: '', email: '', dataNascimento: '', observacoes: '',
     ativo: true, funcao: FuncaoMinistro.EUCARISTIA, funcaoEspecificada: '',
-    visitasAoInfermo: false, statusCurso: false,
+    visitasAosEnfermos: false, statusCurso: false,
     aptidoes: [], indisponibilidades: [], disponibilidadesRec: [],
   });
 
@@ -125,7 +125,7 @@ export const MinistrosPage: React.FC = () => {
     setFormData({
       nome: '', telefone: '', email: '', dataNascimento: '', observacoes: '',
       ativo: true, funcao: FuncaoMinistro.EUCARISTIA, funcaoEspecificada: '',
-      visitasAoInfermo: false, statusCurso: false,
+      visitasAosEnfermos: false, statusCurso: false,
       aptidoes: [], indisponibilidades: [], disponibilidadesRec: [],
     });
   };
@@ -360,7 +360,7 @@ export const MinistrosPage: React.FC = () => {
           <div className="space-y-2">
             {[
               { label: 'Ativo', key: 'ativo' as const },
-              { label: 'Realiza visitas aos enfermos', key: 'visitasAoInfermo' as const },
+              { label: 'Realiza visitas aos enfermos', key: 'visitasAosEnfermos' as const },
               { label: 'Curso completo', key: 'statusCurso' as const },
             ].map(({ label, key }) => (
               <label key={key} className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">

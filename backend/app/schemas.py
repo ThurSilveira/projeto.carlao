@@ -149,7 +149,7 @@ class MinistroIn(BaseSchema):
     data_nascimento: Optional[date] = None
     observacoes: Optional[str] = None
     ativo: bool = True
-    visitas_ao_infermo: bool = False
+    visitas_aos_enfermos: bool = False
     status_curso: bool = False
     funcao: Optional[str] = None
     funcao_especificada: Optional[str] = None
@@ -163,7 +163,7 @@ class MinistroOut(BaseSchema):
     data_nascimento: Optional[date] = None
     observacoes: Optional[str] = None
     ativo: bool = True
-    visitas_ao_infermo: bool = False
+    visitas_aos_enfermos: bool = False
     status_curso: bool = False
     escalas_mes: Optional[int] = 0
     funcao: Optional[str] = None

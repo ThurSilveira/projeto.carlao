@@ -18,3 +18,29 @@ def apply_schema_migrations(engine: Engine) -> None:
                 """
             )
         )
+        connection.execute(
+            text(
+                """
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM information_schema.columns
+                        WHERE table_schema = current_schema()
+                          AND table_name = 'ministro'
+                          AND column_name = 'visitas_ao_infermo'
+                    ) AND NOT EXISTS (
+                        SELECT 1
+                        FROM information_schema.columns
+                        WHERE table_schema = current_schema()
+                          AND table_name = 'ministro'
+                          AND column_name = 'visitas_aos_enfermos'
+                    ) THEN
+                        ALTER TABLE ministro
+                        RENAME COLUMN visitas_ao_infermo TO visitas_aos_enfermos;
+                    END IF;
+                END
+                $$
+                """
+            )
+        )

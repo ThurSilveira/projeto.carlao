@@ -58,7 +58,7 @@ export interface Ministro {
   ativo: boolean;
   funcao: FuncaoMinistro;
   funcaoEspecificada?: string;
-  visitasAoInfermo: boolean;
+  visitasAosEnfermos: boolean;
   statusCurso: boolean;
   escalasMes?: number;
   aptidoes: TipoEvento[];

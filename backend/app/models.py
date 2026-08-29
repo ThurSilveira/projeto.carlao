@@ -18,7 +18,7 @@ class Ministro(Base):
     data_nascimento = Column(Date)
     observacoes = Column(String)
     ativo = Column(Boolean, nullable=False, default=True)
-    visitas_ao_infermo = Column(Boolean, nullable=False, default=False)
+    visitas_aos_enfermos = Column(Boolean, nullable=False, default=False)
     status_curso = Column(Boolean, nullable=False, default=False)
     escalas_mes = Column(Integer, default=0)
     funcao = Column(String, nullable=False, default="LEITURA")

@@ -53,7 +53,7 @@ def _to_out(db: Session, m: Ministro) -> MinistroOut:
         data_nascimento=m.data_nascimento,
         observacoes=m.observacoes,
         ativo=m.ativo,
-        visitas_ao_infermo=m.visitas_ao_infermo,
+        visitas_aos_enfermos=m.visitas_aos_enfermos,
         status_curso=m.status_curso,
         escalas_mes=m.escalas_mes,
         funcao=m.funcao,
@@ -70,7 +70,7 @@ def _preencher(ministro: Ministro, data: MinistroIn) -> None:
     ministro.data_nascimento = data.data_nascimento
     ministro.observacoes = data.observacoes
     ministro.ativo = data.ativo
-    ministro.visitas_ao_infermo = data.visitas_ao_infermo
+    ministro.visitas_aos_enfermos = data.visitas_aos_enfermos
     ministro.status_curso = data.status_curso
     ministro.funcao_especificada = data.funcao_especificada
     funcao = data.funcao or "LEITURA"
