@@ -1,10 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { EscalaService, EventoService } from '@/services/api';
-import { Card, Badge, Spinner, Button, Modal, Select, Alert } from '@/components/ui';
+import { Card, Badge, Spinner, Button, Modal, Select, Alert, Input } from '@/components/ui';
 import { Escala, EscalaMinistro, Evento, StatusEscala, PreviewEscala, MinistroSituacao } from '@/types';
-import { CheckCircle, XCircle, Zap, Users, Trash2, AlertTriangle } from 'lucide-react';
+import { CheckCircle, XCircle, Zap, Users, Trash2, AlertTriangle, FileSpreadsheet } from 'lucide-react';
 import { formatDate } from '@/utils/date';
 import { getErrorMessage } from '@/utils/error';
+import {
+  downloadEscalaReport,
+  getDefaultEscalaReportPeriod,
+  getEscalasInPeriod,
+} from '@/utils/escalaReport';
 
 export const EscalasPage: React.FC = () => {
   const [escalas, setEscalas] = useState<Escala[]>([]);
@@ -13,6 +18,13 @@ export const EscalasPage: React.FC = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertVariant, setAlertVariant] = useState<'success' | 'error'>('success');
   const [filterStatus, setFilterStatus] = useState('');
+
+  // modal: relatório em Excel
+  const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportStartDate, setReportStartDate] = useState('');
+  const [reportEndDate, setReportEndDate] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportError, setReportError] = useState('');
 
   // modal: selecionar evento
   const [isGerarOpen, setIsGerarOpen] = useState(false);
@@ -85,6 +97,37 @@ export const EscalasPage: React.FC = () => {
   const showAlert = (msg: string, variant: 'success' | 'error') => {
     setAlertMessage(msg);
     setAlertVariant(variant);
+  };
+
+  const openReportModal = () => {
+    const period = getDefaultEscalaReportPeriod(escalas, eventos);
+    setReportStartDate(period.startDate);
+    setReportEndDate(period.endDate);
+    setReportError('');
+    setIsReportOpen(true);
+  };
+
+  const closeReportModal = () => {
+    if (reportLoading) return;
+    setIsReportOpen(false);
+    setReportError('');
+  };
+
+  const handleDownloadReport = async () => {
+    setReportError('');
+    setReportLoading(true);
+    try {
+      const workbook = await downloadEscalaReport(escalas, eventos, {
+        startDate: reportStartDate,
+        endDate: reportEndDate,
+      });
+      setIsReportOpen(false);
+      showAlert(`Relatório gerado com sucesso: ${workbook.fileName}`, 'success');
+    } catch (error: unknown) {
+      setReportError(getErrorMessage(error, 'Não foi possível gerar o relatório.'));
+    } finally {
+      setReportLoading(false);
+    }
   };
 
   const handlePreview = async () => {
@@ -248,6 +291,13 @@ export const EscalasPage: React.FC = () => {
 
   const eventosDisponiveis = eventos.filter((e) => !e.cancelado);
   const filteredEscalas = escalas.filter((e) => !filterStatus || e.status === filterStatus);
+  const reportEscalas = reportStartDate && reportEndDate
+    ? getEscalasInPeriod(escalas, eventos, { startDate: reportStartDate, endDate: reportEndDate })
+    : [];
+  const reportAllocations = reportEscalas.reduce(
+    (total, { escala }) => total + escala.escalaMinistros.filter((item) => !item.substituido).length,
+    0,
+  );
 
   const substituirPreviewDisponiveis = substituirPreview
     ? [...substituirPreview.definitivos, ...substituirPreview.empatados]
@@ -264,15 +314,21 @@ export const EscalasPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">📋 Escalas</h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">Gerencie as escalas de ministros</p>
         </div>
-        <Button onClick={() => setIsGerarOpen(true)}>
-          <Zap size={18} className="mr-2" />
-          Gerar Escala
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={openReportModal}>
+            <FileSpreadsheet size={18} className="mr-2" />
+            Imprimir relatório
+          </Button>
+          <Button onClick={() => setIsGerarOpen(true)}>
+            <Zap size={18} className="mr-2" />
+            Gerar Escala
+          </Button>
+        </div>
       </div>
 
       {alertMessage && (
@@ -387,6 +443,80 @@ export const EscalasPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal: relatório em Excel */}
+      <Modal
+        isOpen={isReportOpen}
+        title="📊 Imprimir relatório de escalas"
+        onClose={closeReportModal}
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={closeReportModal} disabled={reportLoading}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDownloadReport}
+              disabled={reportLoading || reportEscalas.length === 0 || reportStartDate > reportEndDate}
+            >
+              {reportLoading
+                ? <Spinner size="sm" />
+                : <><FileSpreadsheet size={16} className="mr-1" /> Gerar Excel</>}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Escolha o período que será considerado. O arquivo será baixado em uma tabela simples, com uma linha por evento.
+          </p>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Input
+              type="date"
+              label="Data inicial *"
+              value={reportStartDate}
+              max={reportEndDate || undefined}
+              onChange={(event) => { setReportStartDate(event.target.value); setReportError(''); }}
+            />
+            <Input
+              type="date"
+              label="Data final *"
+              value={reportEndDate}
+              min={reportStartDate || undefined}
+              onChange={(event) => { setReportEndDate(event.target.value); setReportError(''); }}
+            />
+          </div>
+
+          {reportStartDate > reportEndDate && (
+            <Alert variant="error">A data inicial não pode ser posterior à data final.</Alert>
+          )}
+          {reportError && <Alert variant="error">{reportError}</Alert>}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-primary-200 bg-primary-50 p-3 text-center dark:border-primary-800 dark:bg-primary-950/30">
+              <p className="text-2xl font-bold text-primary-700 dark:text-primary-300">{reportEscalas.length}</p>
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-300">escalas no período</p>
+            </div>
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-center dark:border-emerald-800 dark:bg-emerald-950/30">
+              <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">{reportAllocations}</p>
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-300">pessoas alocadas</p>
+            </div>
+          </div>
+
+          {reportEscalas.length === 0 && reportStartDate && reportEndDate && reportStartDate <= reportEndDate && (
+            <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+              Nenhuma escala foi encontrada neste período. Ajuste as datas antes de gerar o arquivo.
+            </div>
+          )}
+
+          <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+            <p className="mb-2 text-sm font-semibold text-slate-800 dark:text-slate-200">Colunas da planilha:</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              Dia, horário, término, evento e uma coluna separada para cada ministro escalado.
+            </p>
+          </div>
+        </div>
+      </Modal>
 
       {/* Modal 1: Selecionar evento */}
       <Modal
