@@ -1,10 +1,16 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "API TypeScript para gerenciamento de ministros",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx watch src/server.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
+    "build": "prisma generate && tsc",
+    "start": "node dist/server.js",
+    "test": "tsx --test src/tests/*.test.ts",
+    "check": "npm run prisma:validate && npm test && npm run build"
   },
   "keywords": [],
   "author": "",
@@ -26,10 +32,5 @@
     "prisma": "^7.9.1",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
-  },"scripts": {
-  "dev": "tsx watch src/server.ts",
-  "build": "tsc",
-  "start": "node dist/server.js"
-}
-
+  }
 }

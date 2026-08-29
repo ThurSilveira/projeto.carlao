@@ -14,17 +14,16 @@ generator client {
 }
 
 model Ministro {
-  id                Int       @id @default(autoincrement())
-  nome              String
-  email             String?
-  telefone          String?
-  dataNascimento    DateTime?
-  observacoes       String?
-  ativo             Boolean   @default(true)
-  visitasAoInfermo  Boolean   @default(false)
-  statusCurso       Boolean   @default(false)
-  escalasMes        Int       @default(0)
-  funcaoEspecífica String?
+  id                 Int       @id @default(autoincrement())
+  nome               String
+  email              String    @unique
+  telefone           String?
+  dataNascimento     DateTime? @db.Date
+  observacoes        String?
+  ativo              Boolean   @default(true)
+  visitasAoInfermo   Boolean   @default(false)
+  statusCurso        Boolean   @default(false)
+  escalasMes         Int       @default(0)
+  funcao             String    @default("LEITURA")
+  funcaoEspecificada String?
 }
-
-

@@ -1,34 +1,43 @@
 import { prisma } from "../config/prisma";
-import { CreateMinistroDTO } from "../types/Ministro";
+import {
+  CreateMinistroDTO,
+  MinistroEntity,
+  UpdateMinistroDTO,
+} from "../types/Ministro";
 
-export function findAll() {
-  return prisma.ministro.findMany();
+export interface MinistroRepository {
+  findAll(): Promise<MinistroEntity[]>;
+  findById(id: number): Promise<MinistroEntity | null>;
+  findByEmail(email: string): Promise<MinistroEntity | null>;
+  create(data: CreateMinistroDTO): Promise<MinistroEntity>;
+  update(id: number, data: UpdateMinistroDTO): Promise<MinistroEntity>;
+  remove(id: number): Promise<void>;
 }
 
-export function findById(id: number) {
-  return prisma.ministro.findUnique({
-    where: { id },
-  });
+export class PrismaMinistroRepository implements MinistroRepository {
+  findAll(): Promise<MinistroEntity[]> {
+    return prisma.ministro.findMany({ orderBy: { nome: "asc" } });
+  }
+
+  findById(id: number): Promise<MinistroEntity | null> {
+    return prisma.ministro.findUnique({ where: { id } });
+  }
+
+  findByEmail(email: string): Promise<MinistroEntity | null> {
+    return prisma.ministro.findUnique({ where: { email } });
+  }
+
+  create(data: CreateMinistroDTO): Promise<MinistroEntity> {
+    return prisma.ministro.create({ data });
+  }
+
+  update(id: number, data: UpdateMinistroDTO): Promise<MinistroEntity> {
+    return prisma.ministro.update({ where: { id }, data });
+  }
+
+  async remove(id: number): Promise<void> {
+    await prisma.ministro.delete({ where: { id } });
+  }
 }
 
-export function create(data: CreateMinistroDTO) {
-  return prisma.ministro.create({ data });
-}
-
-import { UpdateMinistroDTO } from "../types/Ministro";
-
-export function update(
-  id: number,
-  data: UpdateMinistroDTO
-) {
-  return prisma.ministro.update({
-    where: { id },
-    data,
-  });
-}
-
-export function remove(id: number) {
-  return prisma.ministro.delete({
-    where: { id },
-  });
-}
+export const ministroRepository = new PrismaMinistroRepository();
