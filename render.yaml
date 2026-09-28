@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: escala-ministerial-api-node
+    env: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/public/health
+    autoDeployTrigger: off
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_SSL
+        value: "true"
+      - key: CORS_ORIGINS
+        value: https://escala-ministerial.vercel.app
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: "3000"

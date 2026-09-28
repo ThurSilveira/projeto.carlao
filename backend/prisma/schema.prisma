@@ -1,16 +1,12 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 datasource db {
   provider = "postgresql"
 }
 
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  moduleFormat = "cjs"
+  provider = "prisma-client-js"
 }
 
 model Ministro {
@@ -26,4 +22,144 @@ model Ministro {
   escalasMes         Int       @default(0)
   funcao             String    @default("LEITURA")
   funcaoEspecificada String?
+
+  indisponibilidades Indisponibilidade[]
+  escalas            EscalaMinistro[]
+  feedbacks          Feedback[]
+  vinculoUsuario     VinculoUsuarioMinistro?
+}
+
+model Evento {
+  id               Int       @id @default(autoincrement())
+  nome             String
+  data             DateTime  @db.Date
+  horario          String
+  tipoEvento       String    @default("MISSA_PAROQUIAL")
+  maxMinistros     Int       @default(6)
+  local            String?
+  cancelado        Boolean   @default(false)
+  tipoEspecificado String?
+
+  escalas          Escala[]
+  feedbacks        Feedback[]
+}
+
+model Escala {
+  id             Int      @id @default(autoincrement())
+  eventoId       Int
+  dataAtribuicao DateTime @default(now()) @db.Date
+  observacao     String?
+  status         String   @default("PROPOSTA")
+
+  evento         Evento   @relation(fields: [eventoId], references: [id])
+  escalaMinistros EscalaMinistro[]
+  sincronizacao  SincronizacaoCalendario?
+}
+
+model EscalaMinistro {
+  id                  Int      @id @default(autoincrement())
+  escalaId            Int
+  ministroId          Int
+  confirmacaoMinistro Boolean  @default(false)
+  dataConfirmacao     DateTime? @db.Date
+  substituido         Boolean  @default(false)
+
+  escala              Escala   @relation(fields: [escalaId], references: [id], onDelete: Cascade)
+  ministro            Ministro @relation(fields: [ministroId], references: [id])
+}
+
+model Indisponibilidade {
+  id             Int      @id @default(autoincrement())
+  ministroId     Int
+  data           DateTime @db.Date
+  horarioInicio  String?
+  horarioFim     String?
+  motivo         String?
+
+  ministro       Ministro @relation(fields: [ministroId], references: [id])
+}
+
+model Feedback {
+  id          Int      @id @default(autoincrement())
+  ministroId  Int
+  eventoId    Int
+  nota        Int
+  comentario  String?
+  dataEnvio   DateTime @default(now())
+  status      String   @default("PENDENTE")
+  resposta    String?
+
+  ministro    Ministro @relation(fields: [ministroId], references: [id])
+  evento      Evento   @relation(fields: [eventoId], references: [id])
+}
+
+model LogAuditoria {
+  id             Int      @id @default(autoincrement())
+  entidade       String
+  acao           String
+  statusAnterior String?
+  statusNovo     String?
+  realizadoPorId String?
+  dataHora       DateTime @default(now())
+}
+
+model Usuario {
+  id                Int      @id @default(autoincrement())
+  nome              String   @db.VarChar(120)
+  email             String   @unique @db.VarChar(254)
+  senhaHash         String   @db.VarChar(512)
+  deveAlterarSenha  Boolean  @default(false)
+  ativo             Boolean  @default(true)
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @default(now()) @updatedAt
+
+  sessoes           SessaoAutenticacao[]
+  acesso            AcessoUsuario?
+  vinculoMinistro   VinculoUsuarioMinistro?
+}
+
+model AcessoUsuario {
+  usuarioId  Int      @id
+  perfil     String   @db.VarChar(30)
+  protegido  Boolean  @default(false)
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+model VinculoUsuarioMinistro {
+  usuarioId  Int      @id
+  ministroId Int      @unique
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  ministro   Ministro @relation(fields: [ministroId], references: [id], onDelete: Cascade)
+}
+
+model SessaoAutenticacao {
+  id         Int      @id @default(autoincrement())
+  usuarioId  Int
+  tokenHash  String   @unique @db.VarChar(64)
+  csrfToken  String   @db.VarChar(64)
+  criadoEm   DateTime @default(now())
+  expiraEm   DateTime
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+}
+
+model TentativaLogin {
+  id        Int      @id @default(autoincrement())
+  chaveHash String   @db.VarChar(64)
+  criadaEm  DateTime @default(now())
+}
+
+model SincronizacaoCalendario {
+  id                Int      @id @default(autoincrement())
+  escalaId          Int      @unique
+  googleEventId     String?  @unique @db.VarChar(255)
+  status            String   @default("PENDENTE") @db.VarChar(30)
+  destinatarios     Int      @default(0)
+  erro              String?  @db.Text
+  ultimaTentativaEm DateTime?
+  atualizadoEm      DateTime @default(now()) @updatedAt
+
+  escala            Escala   @relation(fields: [escalaId], references: [id], onDelete: Cascade)
 }
